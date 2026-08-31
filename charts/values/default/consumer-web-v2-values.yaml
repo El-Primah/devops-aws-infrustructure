@@ -1,0 +1,103 @@
+
+replicaCount: 1
+
+image:
+  repository: 343434343434.dkr.ecr.eu-west-1.amazonaws.com/comp/consumer-web
+  pullPolicy: Always
+  tag: latest
+
+imagePullSecrets:
+  - name: regcred
+
+nameOverride: ""
+fullnameOverride: "consumer-web-v2"
+
+serviceAccount:
+  create: false
+  annotations: {}
+  name: "default"
+
+podAnnotations: {}
+
+podSecurityContext: {}
+securityContext: {}
+
+ports:
+  - name: http
+    containerPort: 80
+    protocol: TCP
+
+service:
+  type: ClusterIP
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: http
+    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: arn:aws:acm:eu-west-1:343434343434:certificate/54970813-7546-4f1e-82ba-81553732af8c
+    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: https
+  port: 80
+  ports:
+    - name: https
+      port: 443
+      protocol: TCP
+      targetPort: 80
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: 80
+
+ingress:
+  enabled: true
+  dr: false
+  annotations:
+    nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
+    nginx.ingress.kubernetes.io/cors-allow-methods: PUT, GET, POST, OPTIONS, DELETE, PATCH
+    nginx.ingress.kubernetes.io/cors-allow-origin: '*'
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.org/redirect-to-https: "true"
+    nginx.org/server-tokens: "false"
+    nginx.org/server-snippets: |
+      gzip on;
+      gzip_vary on;
+      gzip_types *;
+      gzip_min_length 0;
+      gzip_proxied any;
+      gzip_disable "MSIE [1-6]\.";
+      add_header Strict-Transport-Security "max-age=31536000; includeSubDomains";
+      add_header X-Frame-Options DENY;
+      add_header X-Content-Type-Options "nosniff"
+  ingressClassName: "nginx-external"
+  hosts:
+    - subdomain: app
+      domain: automation.comp.accept
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512M
+  requests:
+    cpu: 100m
+    memory: 16M
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+env:
+  - name: ENVIRONMENT
+    valueFrom:
+      configMapKeyRef:
+        key: environment
+        name: env-config
+
+probes: {}
+volumeMounts: []
+volumes: []

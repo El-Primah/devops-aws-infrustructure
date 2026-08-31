@@ -1,0 +1,96 @@
+
+deployment:
+  enabled: true
+
+replicaCount: 1
+
+image:
+  repository: 343434343434.dkr.ecr.eu-west-1.amazonaws.com/comp/f_item-gateway
+  pullPolicy: IfNotPresent
+  tag: latest
+
+imagePullSecrets:
+  - name: regsecret
+
+nameOverride: ""
+fullnameOverride: "meme-gateway"
+
+serviceAccount:
+  create: false
+  annotations: {}
+  name: "default"
+
+podAnnotations: {}
+
+podSecurityContext: {}
+
+securityContext: {}
+
+ports:
+  - name: http
+    containerPort: 80
+    protocol: TCP
+  - name: metrics
+    containerPort: 8000
+    protocol: TCP
+
+service:
+  type: ClusterIP
+  annotations: {}
+  port: 80
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: 80
+    - name: metrics
+      port: 8000
+      protocol: TCP
+      targetPort: 8000
+
+ingress:
+  enabled: true
+  annotations: {}
+  servicePort: 80
+  ingressClassName: "nginx"
+  useGlobalDomain: "internal"
+  hosts:
+    - subdomain: app
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 30Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+env:
+  - name: ENVIRONMENT
+    valueFrom:
+      configMapKeyRef:
+        key: environment
+        name: env-config
+
+volumeMounts:
+  - name: logs
+    mountPath: /var/log
+
+volumes:
+  - name: logs
+    hostPath:
+      path: /LOGS/gateway
+      type: ""

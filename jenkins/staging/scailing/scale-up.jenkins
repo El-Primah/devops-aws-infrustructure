@@ -1,0 +1,105 @@
+pipeline {
+    agent { label 'devops' }
+    options {
+        timestamps ()
+        timeout(time: 30, unit: 'MINUTES')
+    }
+    triggers {
+        cron('0 4 * * 1-5 ')
+    }
+    stages {
+        stage('y_app-RDS-Start') {
+            steps {
+                sh ('''#!/bin/bash
+                    whoami
+                    set +v
+                    if ! aws rds describe-db-instances --db-instance-identifier stagingmysql-y_app --region eu-west-1 | grep -q '"DBInstanceStatus": "available"'  ; then
+                        aws rds start-db-instance --db-instance-identifier stagingmysql-y_app --region eu-west-1
+                        echo -e  "\nDB is started\n"
+                    else
+                        echo -e "\nDB is already started\n"
+                    fi
+                    until aws rds describe-db-instances --db-instance-identifier stagingmysql-y_app --region eu-west-1 | grep -q '"DBInstanceStatus": "available"'
+                    do
+	                    echo "DB is not in running state"
+	                    sleep 10s
+                    done
+                    echo -e "\nDB is available now\n"
+                ''')
+            }
+        }
+        stage('phbot-RDS-Start') {
+            steps {
+                sh ('''#!/bin/bash
+                    whoami
+                    set +v
+                    if ! aws rds describe-db-instances --db-instance-identifier phbot-mysql-staging --region eu-west-1 | grep -q '"DBInstanceStatus": "available"'  ; then
+                        aws rds start-db-instance --db-instance-identifier phbot-mysql-staging --region eu-west-1
+                        echo -e  "\nDB is started\n"
+                    else
+                        echo -e "\nDB is already started\n"
+                    fi
+                    until aws rds describe-db-instances --db-instance-identifier phbot-mysql-staging --region eu-west-1 | grep -q '"DBInstanceStatus": "available"'
+                    do
+	                    echo "DB is not in running state"
+	                    sleep 10s
+                    done
+                    echo -e "\nDB is available now\n"
+                ''')
+            }
+        }
+		stage('Bastion-host-start') {
+            steps {
+                sh "aws ec2 start-instances --instance-ids i-1234 --region eu-west-1"
+            }
+        }
+        stage('K8S-Node-start') {
+            steps {
+                sh ('''#!/bin/bash
+                    set +v
+                    curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+                    sudo mv /tmp/eksctl /usr/local/bin
+                    /usr/local/bin/eksctl scale nodegroup --cluster comp-tf-stage --region eu-west-1 --name on-demand-1234 --nodes 3 --nodes-min=3 --nodes-max=3
+                    /usr/local/bin/eksctl scale nodegroup --cluster comp-tf-stage --region eu-west-1 --name r52xlarge --nodes 1 --nodes-min=1 --nodes-max=1
+                ''')
+            }
+        }
+        stage('register-targets') {
+            steps {
+                sh ('''#!/bin/bash
+                    set +v
+					sleep 120;
+                    instances=$(aws ec2 describe-instances --region eu-west-1 --filters "Name=tag:kubernetes.io/cluster/comp-tf-stage,Values=owned" "Name=instance-state-name,Values=running" --query "Reservations[].Instances[].InstanceId" --output text)
+                    echo "instances"
+                    echo $instances
+                    
+                    for instance in $instances; do
+                        aws elbv2 register-targets --target-group-arn arn:aws:elasticloadbalancing:eu-west-1:343434343434:targetgroup/meme-waf-stage-http/1234 --targets Id=$instance
+                    done
+
+                    for instance in $instances; do
+                        aws elbv2 register-targets --target-group-arn arn:aws:elasticloadbalancing:eu-west-1:343434343434:targetgroup/meme-waf-stage-https/1234 --targets Id=$instance
+                    done
+                ''')
+            }
+        }
+		stage('scale up replicas') {
+            steps {
+                dir('jenkins') {
+                    sh ('''#!/bin/bash
+                        set +v
+
+                        bash ../scripts/ssm-send-command.sh i-1234 ./staging/scailing/ssm-scale-up.json
+                        
+                        until curl -s -o /dev/null -w "%{http_code}" https://app.staging.f_item.com | grep 200
+                        do
+                            echo "Checking site https://app.staging.f_item.com up status"
+                            sleep 10s
+                        done
+                        echo -e "\nSite https://app.staging.f_item.com is up and ready for use\n"
+                    ''')
+                }
+            }
+        }
+    }
+}

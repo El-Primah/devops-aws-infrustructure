@@ -1,0 +1,26 @@
+pipeline {
+    agent { label 'master' }
+    options {
+        timestamps ()
+        timeout(time: 30, unit: 'MINUTES')
+    }
+    triggers {
+        cron('0 2 * * *')
+    }
+    stages {
+		stage('Deleting the data') {
+            steps {
+                sshagent(['prod-eu-west-1-bastion']) {
+                    sh '''#!/bin/bash
+                        ssh -o StrictHostKeyChecking=no ubuntu@bastion.y_app.comp.com << 'EOF'
+                        set -e
+                        POD_NAME=$(kubectl get pods | grep -i "aliner" | head -n 1 | awk '{print \$1}')
+
+                        kubectl exec -i $POD_NAME -- /bin/bash -c "export mongo_user=$(aws s3 cp s3://comp-production-config/app.env - | cat | grep -oP '(?<=^    mongo_admin_user=).*') && export mongo_password=$(aws s3 cp s3://comp-production-config/app.env - | cat | grep -oP '(?<=^    mongo_admin_password=).*') && php artisan cleanup-mongo"
+                        EOF
+                        '''
+                    }
+            }
+        }
+    }
+}

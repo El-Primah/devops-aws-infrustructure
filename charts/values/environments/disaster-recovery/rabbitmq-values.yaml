@@ -1,0 +1,4 @@
+resources:
+  requests:
+    cpu: 30m
+    memory: 300M

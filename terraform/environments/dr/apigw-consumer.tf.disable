@@ -1,0 +1,1443 @@
+module "apigw_consumer" {
+  source = "../../modules/apigw"
+  
+  api_name        = var.apigw_consumer_name
+  api_description = "Clone from consumer-api-gateway"
+  stage_name      = var.apigw_consumer_stage_name
+  region          = data.aws_region.current.name
+  
+  minimum_compression_size = 0
+  
+  stage_variables = {
+    apiDns = var.stage_var_api_dns
+  }
+  tags = {
+    STAGE = var.apigw_consumer_tag
+  }
+  
+  authorizer_name          = var.consumer_com_api_auth_name
+  authorizer_type          = "COGNITO_USER_POOLS"
+  authorizer_provider_arns = [aws_cognito_user_pool.consumer_cognito.arn]
+  
+  xray_tracing_enabled = true # for apigw_consumer stage
+  
+  resources = [
+    # Level 1 resources
+    {
+      key       = "que_app"
+      parent_key = "root"
+      path_part = "que_app"
+    },
+    {
+      key       = "meme_cloud_api"
+      parent_key = "root"
+      path_part = "meme-cloud-api"
+    },
+    {
+      key       = "lambda"
+      parent_key = "root"
+      path_part = "lambda"
+    },
+    {
+      key       = "providers"
+      parent_key = "root"
+      path_part = "providers"
+    },
+    {
+      key       = "user"
+      parent_key = "root"
+      path_part = "user"
+    },
+    {
+      key       = "item"
+      parent_key = "root"
+      path_part = "item"
+    },
+    {
+      key       = "case_resource"
+      parent_key = "root"
+      path_part = "case"
+    },
+    {
+      key       = "consts"
+      parent_key = "root"
+      path_part = "consts"
+    },
+    {
+      key       = "notifications"
+      parent_key = "root"
+      path_part = "notifications"
+    },
+    {
+      key       = "analytics"
+      parent_key = "root"
+      path_part = "analytics"
+    },
+    {
+      key       = "webhooks"
+      parent_key = "root"
+      path_part = "webhooks"
+    },
+    {
+      key       = "opt_ins_options"
+      parent_key = "root"
+      path_part = "opt-ins-options"
+    },
+    {
+      key       = "articles"
+      parent_key = "root"
+      path_part = "articles"
+    },
+    {
+      key       = "feedback"
+      parent_key = "root"
+      path_part = "feedback"
+    },
+    {
+      key       = "get_init_analysis"
+      parent_key = "root"
+      path_part = "get-init-analysis"
+    },
+    {
+      key       = "check_access_code"
+      parent_key = "root"
+      path_part = "check-access-code"
+    },
+    {
+      key       = "send_result_to_email"
+      parent_key = "root"
+      path_part = "send-result-to-email"
+    },
+    {
+      key       = "get_result_pdf"
+      parent_key = "root"
+      path_part = "get-result-pdf"
+    },
+    {
+      key       = "download_que_app_result_pdf"
+      parent_key = "root"
+      path_part = "download-que_app-result-pdf"
+    },
+    {
+      key       = "contact_us"
+      parent_key = "root"
+      path_part = "contact-us"
+    },
+    {
+      key       = "init"
+      parent_key = "root"
+      path_part = "init"
+    },
+    {
+      key       = "accept_tos"
+      parent_key = "root"
+      path_part = "accept-tos"
+    },
+    {
+      key       = "verify_recaptcha"
+      parent_key = "root"
+      path_part = "verify-recaptcha"
+    },
+    {
+      key       = "admin"
+      parent_key = "root"
+      path_part = "admin"
+    },
+    {
+      key       = "v1"
+      parent_key = "root"
+      path_part = "v1"
+    },
+    # Level 2 resources
+    {
+      key       = "que_app_form"
+      parent_key = "que_app"
+      path_part = "form"
+    },
+    {
+      key       = "que_app_result"
+      parent_key = "que_app"
+      path_part = "result"
+    },
+    {
+      key       = "que_app_assessment_request_token"
+      parent_key = "que_app"
+      path_part = "assessment-request-token"
+    },
+    {
+      key       = "que_app_create_mock"
+      parent_key = "que_app"
+      path_part = "create-mock"
+    },
+    {
+      key       = "que_app_partial"
+      parent_key = "que_app"
+      path_part = "partial"
+    },
+    {
+      key       = "que_app_status"
+      parent_key = "que_app"
+      path_part = "status"
+    },
+    {
+      key       = "que_app_update"
+      parent_key = "que_app"
+      path_part = "update"
+    },
+    {
+      key       = "meme_cloud_api_library"
+      parent_key = "meme_cloud_api"
+      path_part = "library"
+    },
+    {
+      key       = "lambda_cases"
+      parent_key = "lambda"
+      path_part = "cases"
+    },
+    {
+      key       = "providers_insurance"
+      parent_key = "providers"
+      path_part = "insurance"
+    },
+    {
+      key       = "providers_listing"
+      parent_key = "providers"
+      path_part = "listing"
+    },
+    {
+      key       = "providers_premium_listing"
+      parent_key = "providers"
+      path_part = "premium-listing"
+    },
+    {
+      key       = "providers_details"
+      parent_key = "providers"
+      path_part = "details"
+    },
+    {
+      key       = "providers_zipcode"
+      parent_key = "providers"
+      path_part = "zipcode"
+    },
+    {
+      key       = "providers_display_get_help"
+      parent_key = "providers"
+      path_part = "display-get-help"
+    },
+    {
+      key       = "providers_genetic_test_form"
+      parent_key = "providers"
+      path_part = "genetic-test-form"
+    },
+    {
+      key       = "providers_connect"
+      parent_key = "providers"
+      path_part = "connect"
+    },
+    {
+      key       = "providers_category"
+      parent_key = "providers"
+      path_part = "category"
+    },
+    {
+      key       = "providers_leads"
+      parent_key = "providers"
+      path_part = "leads"
+    },
+    {
+      key       = "user_contact"
+      parent_key = "user"
+      path_part = "contact"
+    },
+    {
+      key       = "user_forms"
+      parent_key = "user"
+      path_part = "forms"
+    },
+    {
+      key       = "user_verify_token"
+      parent_key = "user"
+      path_part = "verify-token"
+    },
+    {
+      key       = "user_pusher_auth"
+      parent_key = "user"
+      path_part = "pusher-auth"
+    },
+    {
+      key       = "user_pusher_visitor_auth"
+      parent_key = "user"
+      path_part = "pusher-visitor-auth"
+    },
+    {
+      key       = "user_phone"
+      parent_key = "user"
+      path_part = "phone"
+    },
+    {
+      key       = "item_save"
+      parent_key = "item"
+      path_part = "save"
+    },
+    {
+      key       = "item_get_all"
+      parent_key = "item"
+      path_part = "get-all"
+    },
+    {
+      key       = "item_detail"
+      parent_key = "item"
+      path_part = "detail"
+    },
+    {
+      key       = "item_result"
+      parent_key = "item"
+      path_part = "result"
+    },
+    {
+      key       = "item_validation_update"
+      parent_key = "item"
+      path_part = "validation-update"
+    },
+    {
+      key       = "item_re_validate"
+      parent_key = "item"
+      path_part = "re-validate"
+    },
+    {
+      key       = "item_result_breakdown"
+      parent_key = "item"
+      path_part = "result-breakdown"
+    },
+    {
+      key       = "item_upload_new_item"
+      parent_key = "item"
+      path_part = "upload-new-item"
+    },
+    {
+      key       = "case_appointments"
+      parent_key = "case_resource"
+      path_part = "appointments"
+    },
+    {
+      key       = "case_dscore"
+      parent_key = "case_resource"
+      path_part = "dscore"
+    },
+    {
+      key       = "case_zipcode"
+      parent_key = "case_resource"
+      path_part = "zipcode"
+    },
+    {
+      key       = "consts_user_consts"
+      parent_key = "consts"
+      path_part = "user-consts"
+    },
+    {
+      key       = "consts_user_level_consts"
+      parent_key = "consts"
+      path_part = "user-level-consts"
+    },
+    {
+      key       = "notifications_sms"
+      parent_key = "notifications"
+      path_part = "sms"
+    },
+    {
+      key       = "analytics_send"
+      parent_key = "analytics"
+      path_part = "send"
+    },
+    {
+      key       = "webhooks_typeform"
+      parent_key = "webhooks"
+      path_part = "typeform"
+    },
+    {
+      key       = "admin_campaigns"
+      parent_key = "admin"
+      path_part = "campaigns"
+    },
+    {
+      key       = "admin_templates"
+      parent_key = "admin"
+      path_part = "templates"
+    },
+    {
+      key       = "v1_que_app"
+      parent_key = "v1"
+      path_part = "que_app"
+    },
+    # Level 3 resources
+    {
+      key       = "que_app_form_start_submission"
+      parent_key = "que_app_form"
+      path_part = "start-submission"
+    },
+    {
+      key       = "que_app_form_collect_answers"
+      parent_key = "que_app_form"
+      path_part = "collect-answers"
+    },
+    {
+      key       = "meme_cloud_api_library_search"
+      parent_key = "meme_cloud_api_library"
+      path_part = "search"
+    },
+    {
+      key       = "meme_cloud_api_library_browse"
+      parent_key = "meme_cloud_api_library"
+      path_part = "browse"
+    },
+    {
+      key       = "meme_cloud_api_library_api"
+      parent_key = "meme_cloud_api_library"
+      path_part = "api"
+    },
+    {
+      key       = "providers_category_listing"
+      parent_key = "providers_category"
+      path_part = "listing"
+    },
+    {
+      key       = "providers_leads_fields"
+      parent_key = "providers_leads"
+      path_part = "fields"
+    },
+    {
+      key       = "providers_leads_summary"
+      parent_key = "providers_leads"
+      path_part = "summary"
+    },
+    {
+      key       = "user_phone_send_code"
+      parent_key = "user_phone"
+      path_part = "send-code"
+    },
+    {
+      key       = "user_phone_verify"
+      parent_key = "user_phone"
+      path_part = "verify"
+    },
+    {
+      key       = "notifications_sms_send"
+      parent_key = "notifications_sms"
+      path_part = "send"
+    },
+    {
+      key       = "v1_que_app_update"
+      parent_key = "v1_que_app"
+      path_part = "update"
+    },
+    # Level 4 resources
+    {
+      key       = "meme_cloud_api_library_search_features"
+      parent_key = "meme_cloud_api_library_search"
+      path_part = "features"
+    },
+    {
+      key       = "meme_cloud_api_library_search_memes"
+      parent_key = "meme_cloud_api_library_search"
+      path_part = "memes"
+    },
+    {
+      key       = "meme_cloud_api_library_search_syndromes"
+      parent_key = "meme_cloud_api_library_search"
+      path_part = "syndromes"
+    }
+  ]
+  methods = [
+    # Root method
+    {
+      key          = "root_get"
+      resource_key = "root"
+      http_method  = "GET"
+      authorization = "NONE"
+      integration = {
+        type                    = "MOCK"
+        uri                     = ""
+        passthrough_behavior    = "WHEN_NO_TEMPLATES"
+      }
+    },
+    # que_app methods
+    {
+      key          = "que_app_post"
+      resource_key = "que_app"
+      http_method  = "POST"
+      authorization = "NONE"
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/que_app/submit"
+        integration_http_method = "POST"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "que_app_form_get"
+      resource_key = "que_app_form"
+      http_method  = "GET"
+      authorization = "NONE"
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/que_app/form"
+        integration_http_method = "GET"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "que_app_result_get"
+      resource_key = "que_app_result"
+      http_method  = "GET"
+      authorization = "NONE"
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/que_app/result"
+        integration_http_method = "GET"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "que_app_result_delete"
+      resource_key = "que_app_result"
+      http_method  = "DELETE"
+      authorization = "COGNITO_USER_POOLS"
+      authorizer_id = module.apigw_consumer.authorizer_id
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/que_app/result"
+        integration_http_method = "DELETE"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "que_app_assessment_request_token_get"
+      resource_key = "que_app_assessment_request_token"
+      http_method  = "GET"
+      authorization = "NONE"
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/assessment-request-token"
+        integration_http_method = "GET"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "que_app_create_mock_get"
+      resource_key = "que_app_create_mock"
+      http_method  = "GET"
+      authorization = "COGNITO_USER_POOLS"
+      authorizer_id = module.apigw_consumer.authorizer_id
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/que_app/create-mock"
+        integration_http_method = "GET"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "que_app_partial_get"
+      resource_key = "que_app_partial"
+      http_method  = "GET"
+      authorization = "NONE"
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/que_app/partial"
+        integration_http_method = "GET"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "que_app_status_get"
+      resource_key = "que_app_status"
+      http_method  = "GET"
+      authorization = "NONE"
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/que_app/status"
+        integration_http_method = "GET"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "que_app_update_post"
+      resource_key = "que_app_update"
+      http_method  = "POST"
+      authorization = "NONE"
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/que_app/update"
+        integration_http_method = "POST"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "que_app_form_start_submission_post"
+      resource_key = "que_app_form_start_submission"
+      http_method  = "POST"
+      authorization = "NONE"
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/que_app/form/start-submission"
+        integration_http_method = "POST"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "que_app_form_collect_answers_post"
+      resource_key = "que_app_form_collect_answers"
+      http_method  = "POST"
+      authorization = "NONE"
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/que_app/form/collect-answers"
+        integration_http_method = "POST"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    # meme Cloud API methods
+    {
+      key          = "meme_cloud_api_library_search_features_get"
+      resource_key = "meme_cloud_api_library_search_features"
+      http_method  = "GET"
+      authorization = "NONE"
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/meme-cloud-api/library/search/features"
+        integration_http_method = "GET"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "meme_cloud_api_library_search_memes_get"
+      resource_key = "meme_cloud_api_library_search_memes"
+      http_method  = "GET"
+      authorization = "NONE"
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/meme-cloud-api/library/search/memes"
+        integration_http_method = "GET"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "meme_cloud_api_library_search_syndromes_get"
+      resource_key = "meme_cloud_api_library_search_syndromes"
+      http_method  = "GET"
+      authorization = "NONE"
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/meme-cloud-api/library/search/syndromes"
+        integration_http_method = "GET"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "meme_cloud_api_library_browse_get"
+      resource_key = "meme_cloud_api_library_browse"
+      http_method  = "GET"
+      authorization = "NONE"
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/meme-cloud-api/library/browse"
+        integration_http_method = "GET"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "meme_cloud_api_library_api_get"
+      resource_key = "meme_cloud_api_library_api"
+      http_method  = "GET"
+      authorization = "NONE"
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/meme-cloud-api/library/api"
+        integration_http_method = "GET"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    # Lambda methods
+    {
+      key          = "lambda_cases_any"
+      resource_key = "lambda_cases"
+      http_method  = "ANY"
+      authorization = "NONE"
+      integration = {
+        type                    = "AWS_PROXY"
+        uri                     = "arn:aws:apigateway:${data.aws_region.current.name}:lambda:path/2015-03-31/functions/arn:aws:lambda:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:function:bm-get-cases/invocations"
+        integration_http_method = "POST"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    # Providers methods
+    {
+      key          = "providers_insurance_get"
+      resource_key = "providers_insurance"
+      http_method  = "GET"
+      authorization = "COGNITO_USER_POOLS"
+      authorizer_id = module.apigw_consumer.authorizer_id
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/providers/insurance"
+        integration_http_method = "GET"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "providers_listing_get"
+      resource_key = "providers_listing"
+      http_method  = "GET"
+      authorization = "COGNITO_USER_POOLS"
+      authorizer_id = module.apigw_consumer.authorizer_id
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/providers/listing"
+        integration_http_method = "GET"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "providers_premium_listing_get"
+      resource_key = "providers_premium_listing"
+      http_method  = "GET"
+      authorization = "COGNITO_USER_POOLS"
+      authorizer_id = module.apigw_consumer.authorizer_id
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/providers/premium-listing"
+        integration_http_method = "GET"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "providers_details_get"
+      resource_key = "providers_details"
+      http_method  = "GET"
+      authorization = "COGNITO_USER_POOLS"
+      authorizer_id = module.apigw_consumer.authorizer_id
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/providers/details"
+        integration_http_method = "GET"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "providers_zipcode_get"
+      resource_key = "providers_zipcode"
+      http_method  = "GET"
+      authorization = "NONE"
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/providers/zipcode"
+        integration_http_method = "GET"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "providers_display_get_help_get"
+      resource_key = "providers_display_get_help"
+      http_method  = "GET"
+      authorization = "NONE"
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/providers/display-get-help"
+        integration_http_method = "GET"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "providers_genetic_test_form_get"
+      resource_key = "providers_genetic_test_form"
+      http_method  = "GET"
+      authorization = "NONE"
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/providers/genetic-test-form"
+        integration_http_method = "GET"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "providers_connect_post"
+      resource_key = "providers_connect"
+      http_method  = "POST"
+      authorization = "COGNITO_USER_POOLS"
+      authorizer_id = module.apigw_consumer.authorizer_id
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/providers/connect"
+        integration_http_method = "POST"
+        passthrough_behavior    = "WHEN_NO_TEMPLATES"
+      }
+    },
+    {
+      key          = "providers_category_listing_get"
+      resource_key = "providers_category_listing"
+      http_method  = "GET"
+      authorization = "COGNITO_USER_POOLS"
+      authorizer_id = module.apigw_consumer.authorizer_id
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/providers/category/listing"
+        integration_http_method = "GET"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "providers_leads_post"
+      resource_key = "providers_leads"
+      http_method  = "POST"
+      authorization = "COGNITO_USER_POOLS"
+      authorizer_id = module.apigw_consumer.authorizer_id
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/providers/leads"
+        integration_http_method = "POST"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "providers_leads_fields_get"
+      resource_key = "providers_leads_fields"
+      http_method  = "GET"
+      authorization = "COGNITO_USER_POOLS"
+      authorizer_id = module.apigw_consumer.authorizer_id
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/providers/leads/fields"
+        integration_http_method = "GET"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "providers_leads_summary_get"
+      resource_key = "providers_leads_summary"
+      http_method  = "GET"
+      authorization = "COGNITO_USER_POOLS"
+      authorizer_id = module.apigw_consumer.authorizer_id
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/providers/leads/summary"
+        integration_http_method = "GET"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    # User methods
+    {
+      key          = "user_get"
+      resource_key = "user"
+      http_method  = "GET"
+      authorization = "COGNITO_USER_POOLS"
+      authorizer_id = module.apigw_consumer.authorizer_id
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/user-details"
+        integration_http_method = "GET"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "user_post"
+      resource_key = "user"
+      http_method  = "POST"
+      authorization = "COGNITO_USER_POOLS"
+      authorizer_id = module.apigw_consumer.authorizer_id
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/register"
+        integration_http_method = "POST"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "user_contact_post"
+      resource_key = "user_contact"
+      http_method  = "POST"
+      authorization = "COGNITO_USER_POOLS"
+      authorizer_id = module.apigw_consumer.authorizer_id
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/user/contact"
+        integration_http_method = "POST"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "user_forms_get"
+      resource_key = "user_forms"
+      http_method  = "GET"
+      authorization = "COGNITO_USER_POOLS"
+      authorizer_id = module.apigw_consumer.authorizer_id
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/user/forms"
+        integration_http_method = "GET"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "user_verify_token_get"
+      resource_key = "user_verify_token"
+      http_method  = "GET"
+      authorization = "NONE"
+      integration = {
+        type                    = "HTTP"
+        uri                     = "https://api.staging.comp.accept/verify-token"
+        integration_http_method = "GET"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "user_pusher_auth_post"
+      resource_key = "user_pusher_auth"
+      http_method  = "POST"
+      authorization = "NONE"
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/pusher-auth"
+        integration_http_method = "POST"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "user_pusher_visitor_auth_post"
+      resource_key = "user_pusher_visitor_auth"
+      http_method  = "POST"
+      authorization = "NONE"
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/pusher-visitor-auth"
+        integration_http_method = "POST"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "user_phone_send_code_post"
+      resource_key = "user_phone_send_code"
+      http_method  = "POST"
+      authorization = "COGNITO_USER_POOLS"
+      authorizer_id = module.apigw_consumer.authorizer_id
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/user/phone/send-code"
+        integration_http_method = "POST"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "user_phone_verify_post"
+      resource_key = "user_phone_verify"
+      http_method  = "POST"
+      authorization = "COGNITO_USER_POOLS"
+      authorizer_id = module.apigw_consumer.authorizer_id
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/user/phone/verify"
+        integration_http_method = "POST"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    # Itemmethods
+    {
+      key          = "item_get"
+      resource_key = "item"
+      http_method  = "GET"
+      authorization = "NONE"
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/item"
+        integration_http_method = "GET"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "item_delete"
+      resource_key = "item"
+      http_method  = "DELETE"
+      authorization = "NONE"
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/item"
+        integration_http_method = "DELETE"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "item_save_post"
+      resource_key = "item_save"
+      http_method  = "POST"
+      authorization = "COGNITO_USER_POOLS"
+      authorizer_id = module.apigw_consumer.authorizer_id
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/item/save"
+        integration_http_method = "POST"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "item_get_all_get"
+      resource_key = "item_get_all"
+      http_method  = "GET"
+      authorization = "NONE"
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/item/get-all"
+        integration_http_method = "GET"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "item_detail_get"
+      resource_key = "item_detail"
+      http_method  = "GET"
+      authorization = "NONE"
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/item/detail"
+        integration_http_method = "GET"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "item_result_get"
+      resource_key = "item_result"
+      http_method  = "GET"
+      authorization = "COGNITO_USER_POOLS"
+      authorizer_id = module.apigw_consumer.authorizer_id
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/item/result"
+        integration_http_method = "GET"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "item_validation_update_post"
+      resource_key = "item_validation_update"
+      http_method  = "POST"
+      authorization = "COGNITO_USER_POOLS"
+      authorizer_id = module.apigw_consumer.authorizer_id
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/item/validation-update"
+        integration_http_method = "POST"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "item_re_validate_post"
+      resource_key = "item_re_validate"
+      http_method  = "POST"
+      authorization = "NONE"
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/item/re-validate"
+        integration_http_method = "POST"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "item_result_breakdown_get"
+      resource_key = "item_result_breakdown"
+      http_method  = "GET"
+      authorization = "COGNITO_USER_POOLS"
+      authorizer_id = module.apigw_consumer.authorizer_id
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/item/result-breakdown"
+        integration_http_method = "GET"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "item_upload_new_item_post"
+      resource_key = "item_upload_new_item"
+      http_method  = "POST"
+      authorization = "NONE"
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/item/upload-new-item"
+        integration_http_method = "POST"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    # Case methods
+    {
+      key          = "case_resource_get"
+      resource_key = "case_resource"
+      http_method  = "GET"
+      authorization = "NONE"
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/case/all"
+        integration_http_method = "GET"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "case_resource_post"
+      resource_key = "case_resource"
+      http_method  = "POST"
+      authorization = "NONE"
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/upload-item"
+        integration_http_method = "POST"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "case_appointments_get"
+      resource_key = "case_appointments"
+      http_method  = "GET"
+      authorization = "NONE"
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/case/appointments"
+        integration_http_method = "GET"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "case_appointments_post"
+      resource_key = "case_appointments"
+      http_method  = "POST"
+      authorization = "NONE"
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/case/appointments"
+        integration_http_method = "POST"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "case_dscore_get"
+      resource_key = "case_dscore"
+      http_method  = "GET"
+      authorization = "NONE"
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/d-score"
+        integration_http_method = "GET"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "case_zipcode_post"
+      resource_key = "case_zipcode"
+      http_method  = "POST"
+      authorization = "COGNITO_USER_POOLS"
+      authorizer_id = module.apigw_consumer.authorizer_id
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/zipcode"
+        integration_http_method = "POST"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    # consts methods
+    {
+      key          = "consts_get"
+      resource_key = "consts"
+      http_method  = "GET"
+      authorization = "NONE"
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/consts"
+        integration_http_method = "GET"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "consts_post"
+      resource_key = "consts"
+      http_method  = "POST"
+      authorization = "NONE"
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/consts"
+        integration_http_method = "POST"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "consts_user_consts_get"
+      resource_key = "consts_user_consts"
+      http_method  = "GET"
+      authorization = "NONE"
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/consts/user-consts"
+        integration_http_method = "GET"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "consts_user_level_consts_get"
+      resource_key = "consts_user_level_consts"
+      http_method  = "GET"
+      authorization = "NONE"
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/consts/user-level-consts"
+        integration_http_method = "GET"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    # Notifications methods
+    {
+      key          = "notifications_sms_send_post"
+      resource_key = "notifications_sms_send"
+      http_method  = "POST"
+      authorization = "NONE"
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/notifications/sms/send"
+        integration_http_method = "POST"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    # Analytics methods
+    {
+      key          = "analytics_send_post"
+      resource_key = "analytics_send"
+      http_method  = "POST"
+      authorization = "COGNITO_USER_POOLS"
+      authorizer_id = module.apigw_consumer.authorizer_id
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/analytics/send"
+        integration_http_method = "POST"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    # Webhooks methods
+    {
+      key          = "webhooks_typeform_post"
+      resource_key = "webhooks_typeform"
+      http_method  = "POST"
+      authorization = "NONE"
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/webhooks/typeform"
+        integration_http_method = "POST"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    # Other methods
+    {
+      key          = "opt_ins_options_post"
+      resource_key = "opt_ins_options"
+      http_method  = "POST"
+      authorization = "COGNITO_USER_POOLS"
+      authorizer_id = module.apigw_consumer.authorizer_id
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/opt-ins-options"
+        integration_http_method = "POST"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "articles_get"
+      resource_key = "articles"
+      http_method  = "GET"
+      authorization = "COGNITO_USER_POOLS"
+      authorizer_id = module.apigw_consumer.authorizer_id
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/articles"
+        integration_http_method = "GET"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "feedback_get"
+      resource_key = "feedback"
+      http_method  = "GET"
+      authorization = "NONE"
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/feedback"
+        integration_http_method = "GET"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "feedback_post"
+      resource_key = "feedback"
+      http_method  = "POST"
+      authorization = "COGNITO_USER_POOLS"
+      authorizer_id = module.apigw_consumer.authorizer_id
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/feedback"
+        integration_http_method = "POST"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "get_init_analysis_get"
+      resource_key = "get_init_analysis"
+      http_method  = "GET"
+      authorization = "NONE"
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/get-init-analysis"
+        integration_http_method = "GET"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "check_access_code_get"
+      resource_key = "check_access_code"
+      http_method  = "GET"
+      authorization = "NONE"
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/check-access-code"
+        integration_http_method = "GET"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "send_result_to_email_get"
+      resource_key = "send_result_to_email"
+      http_method  = "GET"
+      authorization = "COGNITO_USER_POOLS"
+      authorizer_id = module.apigw_consumer.authorizer_id
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/email-result"
+        integration_http_method = "GET"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "get_result_pdf_get"
+      resource_key = "get_result_pdf"
+      http_method  = "GET"
+      authorization = "COGNITO_USER_POOLS"
+      authorizer_id = module.apigw_consumer.authorizer_id
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/download-result-pdf"
+        integration_http_method = "GET"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "download_que_app_result_pdf_get"
+      resource_key = "download_que_app_result_pdf"
+      http_method  = "GET"
+      authorization = "NONE"
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/download-que_app-result-pdf"
+        integration_http_method = "GET"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "contact_us_post"
+      resource_key = "contact_us"
+      http_method  = "POST"
+      authorization = "NONE"
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/contact-us"
+        integration_http_method = "POST"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "init_get"
+      resource_key = "init"
+      http_method  = "GET"
+      authorization = "NONE"
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/init"
+        integration_http_method = "GET"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "accept_tos_post"
+      resource_key = "accept_tos"
+      http_method  = "POST"
+      authorization = "COGNITO_USER_POOLS"
+      authorizer_id = module.apigw_consumer.authorizer_id
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/accept-tos"
+        integration_http_method = "POST"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "verify_recaptcha_post"
+      resource_key = "verify_recaptcha"
+      http_method  = "POST"
+      authorization = "NONE"
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/captcha/verify"
+        integration_http_method = "POST"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    # Admin methods
+    {
+      key          = "admin_campaigns_any"
+      resource_key = "admin_campaigns"
+      http_method  = "ANY"
+      authorization = "NONE"
+      integration = {
+        type                    = "AWS_PROXY"
+        uri                     = "arn:aws:apigateway:${data.aws_region.current.name}:lambda:path/2015-03-31/functions/arn:aws:lambda:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:function:notification-campaigns/invocations"
+        integration_http_method = "POST"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "admin_templates_any"
+      resource_key = "admin_templates"
+      http_method  = "ANY"
+      authorization = "NONE"
+      integration = {
+        type                    = "AWS_PROXY"
+        uri                     = "arn:aws:apigateway:${data.aws_region.current.name}:lambda:path/2015-03-31/functions/arn:aws:lambda:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:function:notification-templates/invocations"
+        integration_http_method = "POST"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    # V1 methods
+    {
+      key          = "v1_que_app_update_get"
+      resource_key = "v1_que_app_update"
+      http_method  = "GET"
+      authorization = "NONE"
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/v1/que_app/update"
+        integration_http_method = "GET"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    },
+    {
+      key          = "v1_que_app_update_post"
+      resource_key = "v1_que_app_update"
+      http_method  = "POST"
+      authorization = "NONE"
+      integration = {
+        type                    = "HTTP_PROXY"
+        uri                     = "https://$${stageVariables.apiDns}/v1/que_app/update"
+        integration_http_method = "POST"
+        passthrough_behavior    = "WHEN_NO_MATCH"
+      }
+    }
+  ]
+}

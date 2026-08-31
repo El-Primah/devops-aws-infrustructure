@@ -1,0 +1,4 @@
+resources:
+  requests:
+    cpu: 600m
+    memory: 4G

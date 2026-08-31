@@ -1,0 +1,11 @@
+persistentVolumeClaim:
+  storage: 50Gi
+  storageClassName: gp3
+
+containers:
+  comp-redis:
+    image:
+      repository: 343434343434.dkr.ecr.eu-west-1.amazonaws.com/comp/redis
+      pullPolicy: IfNotPresent
+      tag: production
+      

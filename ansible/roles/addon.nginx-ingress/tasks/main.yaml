@@ -1,0 +1,15 @@
+- name: Configure nginx-stable repository
+  kubernetes.core.helm_repository:
+    name: nginx-stable
+    repo_url: https://helm.nginx.com/stable
+
+- name: Deploy Internal ingress nginx controller
+  kubernetes.core.helm:
+    name: nginx-ingress
+    chart_ref: nginx-stable/nginx-ingress
+    chart_version: 4.12.0
+    release_namespace: ingress-controller
+    create_namespace: true
+    values_files:
+      - "{{ helm_values_dir }}/default/ingress-internal.yaml"
+

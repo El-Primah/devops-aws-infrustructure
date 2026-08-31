@@ -1,0 +1,487 @@
+[
+    {
+      "grok": {
+        "field": "source",
+        "patterns": [
+          "/%{GREEDYDATA}/%{GREEDYDATA:container}/%{GREEDYDATA:app_name}/%{GREEDYDATA:logName}"
+        ],
+        "ignore_missing": true,
+        "tag": "source"
+      }
+    },
+    {
+      "set": {
+        "field": "environment",
+        "copy_from": "fields.environment",
+        "ignore_empty_value": true,
+        "tag": "fields.environment"
+      }
+    },
+    {
+      "set": {
+        "field": "host_from_filebeat",
+        "copy_from": "fields.environment",
+        "ignore_empty_value": true,
+        "tag": "host_from_filebeat"
+      }
+    },
+    {
+      "grok": {
+        "field": "message",
+        "patterns": [
+          "\\[%{TIMESTAMP_ISO8601:timestamp}\\] %{DATA:log_env}.%{LOGLEVEL:severity}: %{GREEDYDATA:log_message} \\[\\] %{GREEDYDATA:left_over}"
+        ],
+        "ignore_missing": true,
+        "if": "ctx.doctype == \"laravel\"",
+        "tag": "laravel"
+      }
+    },
+    {
+      "date": {
+        "field": "timestamp",
+        "formats": [
+          "yyyy-MM-dd HH:mm:ss",
+          "timestamp"
+        ],
+        "if": "ctx.doctype == \"laravel\"",
+        "tag": "laravel"
+      }
+    },
+    {
+      "set": {
+        "field": "message",
+        "copy_from": "log_message",
+        "ignore_empty_value": true,
+        "if": "ctx.doctype == \"laravel\" && ctx.log_message != null",
+        "tag": "laravel"
+      }
+    },
+    {
+      "json": {
+        "field": "left_over",
+        "add_to_root": true,
+        "if": "ctx.doctype == \"laravel\"",
+        "tag": "laravel"
+      }
+    },
+    {
+      "grok": {
+        "field": "log_message",
+        "patterns": [
+          "log_payload:%{DATA:json_object}}%{GREEDYDATA}"
+        ],
+        "ignore_missing": true,
+        "if": "ctx.doctype == \"laravel\" && ctx.log_message.contains('log_payload:')",
+        "tag": "laravel"
+      }
+    },
+    {
+      "set": {
+        "field": "json_object",
+        "copy_from": "json_object",
+        "ignore_empty_value": true,
+        "if": "ctx.doctype == \"laravel\" && ctx.log_message.contains('log_payload:')",
+        "tag": "laravel"
+      }
+    },
+    {
+      "append": {
+        "field": "json_object",
+        "value": [
+          "}"
+        ],
+        "if": "ctx.doctype == \"laravel\" && ctx.log_message.contains('log_payload:')",
+        "tag": "laravel"
+      }
+    },
+    {
+      "join": {
+        "field": "json_object",
+        "separator": "}",
+        "target_field": "json_object",
+        "if": "ctx.doctype == \"laravel\" && ctx.log_message.contains('log_payload:')",
+        "tag": "laravel"
+      }
+    },
+    {
+      "json": {
+        "field": "json_object",
+        "add_to_root": true,
+        "if": "ctx.doctype == \"laravel\" && ctx.log_message.contains('log_payload:')",
+        "tag": "laravel",
+        "ignore_failure": true
+      }
+    },
+    {
+      "remove": {
+        "field": [
+          "json_object",
+          "log_message"
+        ],
+        "ignore_missing": true,
+        "if": "ctx.doctype == \"laravel\"",
+        "tag": "laravel"
+      }
+    },
+    {
+      "grok": {
+        "field": "message",
+        "patterns": [
+          "%{COMMONAPACHELOG}"
+        ],
+        "ignore_missing": true,
+        "if": "ctx.doctype == \"apache_access\"",
+        "tag": "apache_access"
+      }
+    },
+    {
+      "date": {
+        "field": "timestamp",
+        "formats": [
+          "dd/MMM/yyyy:HH:mm:ss Z",
+          "timestamp"
+        ],
+        "if": "ctx.doctype == \"apache_access\"",
+        "tag": "apache_access"
+      }
+    },
+    {
+      "grok": {
+        "field": "message",
+        "patterns": [
+          ".*$"
+        ],
+        "ignore_missing": true,
+        "if": "ctx.doctype == \"group1_not_structured\"",
+        "tag": "group1_not_structured"
+      }
+    },
+    {
+      "drop": {
+        "if": "ctx.doctype == \"group1_v1\" && ctx.message == 'Using TensorFlow backend.'",
+        "tag": "group1_v1",
+        "ignore_failure": true
+      }
+    },
+    {
+      "grok": {
+        "field": "message",
+        "patterns": [
+          "\\[%{TIMESTAMP_ISO8601:timestamp}\\]: (?<log_level>TIME|TIMING|INFO|WARNING|CRITICAL|DEBUG|ERROR|BOOT), env: %{WORD:environment}, host ip: %{HOSTNAME:server_host}, container: %{HOSTNAME:container}, case: %{BASE10NUM:case}?, image: %{BASE10NUM:image}?, process: (?<process>([a-z]|[0-9]|-|_| )+)?, message: (?<log_message>(\\n|.)*)"
+        ],
+        "ignore_missing": true,
+        "if": "ctx.doctype == \"group1_v1\"",
+        "tag": "group1_v1"
+      }
+    },
+    {
+      "date": {
+        "field": "@timestamp",
+        "formats": [
+          "yyyy-MM-dd HH:mm:ss",
+          "ISO8601",
+          "timestamp"
+        ],
+        "if": "ctx.doctype == \"group1_v1\"",
+        "tag": "group1_v1"
+      }
+    },
+    {
+      "set": {
+        "field": "host_from_filebeat",
+        "copy_from": "fields.host",
+        "ignore_empty_value": true,
+        "if": "ctx.doctype == \"group1_v1\"",
+        "tag": "group1_v1"
+      }
+    },
+    {
+      "set": {
+        "field": "environment_from_filebeat",
+        "copy_from": "fields.environment",
+        "ignore_empty_value": true,
+        "if": "ctx.doctype == \"group1_v1\"",
+        "tag": "group1_v1"
+      }
+    },
+    {
+      "remove": {
+        "field": [
+          "fields",
+          "beat",
+          "host",
+          "@version"
+        ],
+        "ignore_missing": true,
+        "if": "ctx.doctype == \"group1_v1\"",
+        "tag": "group1_v1",
+        "ignore_failure": true
+      }
+    },
+    {
+      "grok": {
+        "field": "message",
+        "patterns": [
+          "log_payload:%{DATA:json_object}}%{GREEDYDATA}"
+        ],
+        "ignore_missing": true,
+        "if": "ctx.doctype == \"group1_v1\" && ctx.log_message.contains('log_payload')",
+        "tag": "group1_v1"
+      }
+    },
+    {
+      "set": {
+        "field": "json_object",
+        "copy_from": "json_object",
+        "ignore_empty_value": true,
+        "if": "ctx.doctype == \"group1_v1\" && ctx.log_message.contains('log_payload')",
+        "tag": "group1_v1"
+      }
+    },
+    {
+      "append": {
+        "field": "json_object",
+        "value": [
+          "}"
+        ],
+        "if": "ctx.doctype == \"group1_v1\" && ctx.log_message.contains('log_payload')",
+        "tag": "group1_v1"
+      }
+    },
+    {
+      "join": {
+        "field": "json_object",
+        "separator": "}",
+        "if": "ctx.doctype == \"group1_v1\" && ctx.log_message.contains('log_payload')",
+        "tag": "group1_v1"
+      }
+    },
+    {
+      "json": {
+        "field": "json_object",
+        "target_field": "json_object",
+        "if": "ctx.doctype == \"group1_v1\" && ctx.log_message.contains('log_payload')",
+        "tag": "group1_v1"
+      }
+    },
+    {
+      "remove": {
+        "field": "json_object",
+        "ignore_missing": true,
+        "if": "ctx.doctype == \"group1_v1\"",
+        "tag": "group1_v1"
+      }
+    },
+    {
+      "drop": {
+        "if": "ctx.doctype == \"group1_python_v1\" && ctx.message == 'Using TensorFlow backend.'",
+        "tag": "group1_python_v1"
+      }
+    },
+    {
+      "grok": {
+        "field": "message",
+        "patterns": [
+          "\\[%{TIMESTAMP_ISO8601:timestamp}\\]: (?<log_level>TIME|TIMING|INFO|WARNING|CRITICAL|DEBUG|ERROR|BOOT), env: %{WORD:environment}, host ip: %{HOSTNAME:server_host}, container: %{HOSTNAME:container}, process: (?<process>([a-z]|[0-9]|-|_| )+)?, log_payload: (?<log_payload>(.|\n)*)"
+        ],
+        "ignore_missing": true,
+        "if": "ctx.doctype == \"group1_python_v1\"",
+        "tag": "group1_python_v1"
+      }
+    },
+    {
+      "date": {
+        "field": "@timestamp",
+        "formats": [
+          "yyyy-MM-dd HH:mm:ss",
+          "ISO8601",
+          "timestamp"
+        ],
+        "if": "ctx.doctype == \"group1_python_v1\"",
+        "tag": "group1_python_v1"
+      }
+    },
+    {
+      "set": {
+        "field": "host_from_filebeat",
+        "copy_from": "fields.host",
+        "ignore_empty_value": true,
+        "if": "ctx.doctype == \"group1_python_v1\"",
+        "tag": "group1_python_v1"
+      }
+    },
+    {
+      "set": {
+        "field": "environment_from_filebeat",
+        "copy_from": "fields.environment",
+        "ignore_empty_value": true,
+        "if": "ctx.doctype == \"group1_python_v1\"",
+        "tag": "group1_python_v1"
+      }
+    },
+    {
+      "remove": {
+        "field": [
+          "fields",
+          "beat",
+          "@version",
+          "host"
+        ],
+        "ignore_missing": true,
+        "if": "ctx.doctype == \"group1_python_v1\"",
+        "tag": "group1_python_v1"
+      }
+    },
+    {
+      "json": {
+        "field": "log_payload",
+        "target_field": "log_payload",
+        "if": "ctx.doctype == \"group1_python_v1\"",
+        "tag": "group1_python_v1"
+      }
+    },
+    {
+      "set": {
+        "field": "runtime",
+        "copy_from": "log_message.runtime",
+        "ignore_empty_value": true,
+        "if": "ctx.doctype == \"group1_python_v1\" && ctx.message.contains('\"log_message\": {\"runtime\"')",
+        "tag": "group1_python_v1"
+      }
+    },
+    {
+      "set": {
+        "field": "event_type",
+        "copy_from": "log_message.event_type",
+        "ignore_empty_value": true,
+        "if": "ctx.doctype == \"group1_python_v1\" && ctx.message.contains('\"log_message\": {\"runtime\"')",
+        "tag": "group1_python_v1"
+      }
+    },
+    {
+      "set": {
+        "field": "log_message",
+        "copy_from": "log_message",
+        "ignore_empty_value": true,
+        "if": "ctx.doctype == \"group1_python_v1\" && ctx.message.contains('\"log_message\": {\"runtime\"')",
+        "tag": "group1_python_v1"
+      }
+    },
+    {
+      "grok": {
+        "field": "message",
+        "patterns": [
+          "\\[%{TIMESTAMP_ISO8601:timestamp}\\] %{LOGLEVEL:severity}: %{GREEDYDATA:log_message}"
+        ],
+        "ignore_missing": true,
+        "if": "ctx.doctype == \"installer\"",
+        "tag": "installer"
+      }
+    },
+    {
+      "date": {
+        "field": "timestamp",
+        "formats": [
+          "yyyy-MM-dd HH:mm:ss",
+          "timestamp"
+        ],
+        "if": "ctx.doctype == \"installer\"",
+        "tag": "installer"
+      }
+    },
+    {
+      "grok": {
+        "field": "message",
+        "patterns": [
+          "\\[%{LOGLEVEL:severity}.*\\]\\[wire\\]\\[%{TIMESTAMP_ISO8601:timestamp}\\]   ((\\>\\> \"%{DATA:request_key}(\\s|:\\s)%{GREEDYDATA:request_value}\")|(\\<\\< \"%{DATA:response_key}(\\s|:\\s)%{GREEDYDATA:response_value}\"))",
+          "\\[%{LOGLEVEL:severity}.*\\]\\[%{WORD:class_name}\\]\\[%{TIMESTAMP_ISO8601:timestamp}\\]  %{GREEDYDATA:data}"
+        ],
+        "ignore_missing": true,
+        "if": "ctx.doctype == \"tls\"",
+        "tag": "tls"
+      }
+    },
+    {
+      "set": {
+        "field": "severity",
+        "copy_from": "message",
+        "ignore_empty_value": true,
+        "if": "ctx.doctype == \"tls\"",
+        "tag": "tls"
+      }
+    },
+    {
+      "set": {
+        "field": "timestamp",
+        "copy_from": "message",
+        "ignore_empty_value": true,
+        "if": "ctx.doctype == \"tls\"",
+        "tag": "tls"
+      }
+    },
+    {
+      "set": {
+        "field": "class_name",
+        "copy_from": "message",
+        "ignore_empty_value": true,
+        "if": "ctx.doctype == \"tls\"",
+        "tag": "tls"
+      }
+    },
+    {
+      "set": {
+        "field": "data",
+        "ignore_empty_value": true,
+        "if": "ctx.doctype == \"tls\"",
+        "tag": "tls",
+        "copy_from": "message"
+      }
+    },
+    {
+      "set": {
+        "field": "request_key",
+        "copy_from": "message",
+        "ignore_empty_value": true,
+        "if": "ctx.doctype == \"tls\"",
+        "tag": "tls"
+      }
+    },
+    {
+      "set": {
+        "field": "request_value",
+        "copy_from": "message",
+        "ignore_empty_value": true,
+        "if": "ctx.doctype == \"tls\"",
+        "tag": "tls"
+      }
+    },
+    {
+      "set": {
+        "field": "response_key",
+        "copy_from": "message",
+        "ignore_empty_value": true,
+        "if": "ctx.doctype == \"tls\"",
+        "tag": "tls"
+      }
+    },
+    {
+      "set": {
+        "field": "response_value",
+        "value": "message",
+        "ignore_empty_value": true,
+        "if": "ctx.doctype == \"tls\"",
+        "tag": "tls"
+      }
+    },
+    {
+      "grok": {
+        "field": "message",
+        "patterns": [
+          "%{GREEDYDATA:message}"
+        ],
+        "ignore_missing": true,
+        "if": "ctx.doctype == \"laravel\" && ctx.doctype == \"apache_access\" && ctx.doctype == \"group1_not_structured\" && ctx.doctype == \"group1_v1\" && ctx.doctype == \"group1_python_v1\" && ctx.doctype == \"installer\" && ctx.doctype == \"tls\"",
+        "tag": "final_else"
+      }
+    }
+]

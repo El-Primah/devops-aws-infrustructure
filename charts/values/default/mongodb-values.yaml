@@ -1,0 +1,125 @@
+
+deployment:
+  enabled: false
+
+nameOverride: ""
+fullnameOverride: "mongodb"
+
+statefulset:
+  replicas: 1
+
+persistentVolumeClaim:
+  annotations:
+    volume.beta.kubernetes.io/storage-provisioner: ebs.csi.aws.com
+  labels:
+    io.mongo.service: mongodb-claim0
+  accessModes:
+    - ReadWriteOnce
+  storage: 500Gi
+  storageClassName: gp3
+
+containers:
+  mongodb:
+    image:
+      repository: 343434343434.dkr.ecr.eu-west-1.amazonaws.com/comp/mongo
+      pullPolicy: IfNotPresent
+      tag: latest
+    env:
+      - name: ENVIRONMENT
+        valueFrom:
+          configMapKeyRef:
+            key: environment
+            name: env-config
+    securityContext: {}
+    ports:
+      - name: mongodb
+        containerPort: 27017
+        protocol: TCP
+    resources:
+      limits:
+        memory: 8G
+      requests:
+        memory: 3500m
+    livenessProbe:
+      exec:
+        command:
+          - mongo
+          - --eval
+          - db.adminCommand('ping')
+      failureThreshold: 3
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      successThreshold: 1
+      timeoutSeconds: 5
+    readinessProbe:
+      exec:
+        command:
+          - mongo
+          - --eval
+          - db.adminCommand('ping')
+      failureThreshold: 3
+      initialDelaySeconds: 5
+      periodSeconds: 10
+      successThreshold: 1
+      timeoutSeconds: 1
+    volumeMounts:
+      - name: logs
+        mountPath: /var/log
+      - name: mongodb-data-volume
+        mountPath: /DATA
+  resource: # <-- Second container
+    image:
+      repository: 343434343434.dkr.ecr.eu-west-1.amazonaws.com/comp/resources
+      pullPolicy: Always
+      tag: latest
+    env:
+      - name: ENVIRONMENT
+        valueFrom:
+          configMapKeyRef:
+            key: environment
+            name: env-config
+    resources:
+      requests:
+        cpu: 100m
+        memory: 1G
+
+imagePullSecrets:
+  - name: regsecret
+
+serviceAccount:
+  create: false
+  annotations: {}
+  name: "default"
+
+podAnnotations: {}
+
+podSecurityContext: {}
+securityContext: {}
+
+service:
+  enabled: true
+  type: ClusterIP
+  annotations: {}
+  port: 27017
+  ports:
+    - name: mongodb
+      port: 27017
+      protocol: TCP
+      targetPort: 27017
+
+ingress:
+  enabled: false
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+volumes:
+  - name: logs
+    hostPath:
+      path: /LOGS
+      type: ""
+  - name: mongodb-data-volume
+    persistentVolumeClaim:
+      claimName: mongodb-data
+

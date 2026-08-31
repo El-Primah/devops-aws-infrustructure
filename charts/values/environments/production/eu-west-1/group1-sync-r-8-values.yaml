@@ -1,0 +1,19 @@
+
+image:
+  repository: 343434343434.dkr.ecr.eu-west-1.amazonaws.com/comp/group1
+  pullPolicy: Always
+  tag: production
+
+strategy:
+  type: Recreate
+  
+env:
+  - name: command
+    value: "prod"
+  - name: WORKER_REGION
+    value: "8"
+  - name: ENVIRONMENT
+    valueFrom:
+      configMapKeyRef:
+        key: environment
+        name: env-config

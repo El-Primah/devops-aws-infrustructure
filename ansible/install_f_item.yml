@@ -1,0 +1,105 @@
+- hosts: k8s
+  gather_facts: no
+  become: true
+  
+  pre_tasks:
+    - include_vars: inventory/group_vars/k8s/helm.yml
+    - name: Compress chart values
+      shell: "cd ../charts/values; tar -cvf values.tar ."
+      delegate_to: localhost
+    - name: Compress application chart file
+      shell: "cd ../charts/application; tar -cvf application.tar ."
+      delegate_to: localhost
+    - name: Compress eck chart file
+      shell: "cd ../charts/eck; tar -cvf eck.tar ."
+      delegate_to: localhost
+    - name: Create destination directories
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: jenkins
+        group: jenkins
+        mode: '0744'
+      loop:
+        - "{{ helm_values_dir }}"
+        - "{{ helm_charts_dir }}"
+        - "{{ eck_helm_chart_dir }}"
+    - name: Copy chart values
+      ansible.builtin.copy:
+        src: ../charts/values/values.tar
+        dest: "{{ helm_values_dir }}/values.tar"
+    - name: Copy f_item chart files
+      ansible.builtin.copy:
+        src: ../charts/application/application.tar
+        dest: "{{ helm_charts_dir }}/application.tar"
+
+    - name: Copy eck chart file
+      ansible.builtin.copy:
+        src: ../charts/eck/eck.tar
+        dest: "{{ eck_helm_chart_dir }}/eck.tar"
+
+    - name: UnCompress chart values
+      shell: "cd {{ helm_values_dir }}; tar -xvf values.tar"
+    - name: UnCompress chart files
+      shell: "cd {{ helm_charts_dir }}; tar -xvf application.tar"
+    - name: UnCompress eck chart files
+      shell: "cd {{ eck_helm_chart_dir }}; tar -xvf eck.tar"
+
+  tasks:
+    - include_vars: inventory/group_vars/k8s/helm.yml
+
+    - name: Configure elastic repository
+      kubernetes.core.helm_repository:
+        name: elastic
+        repo_url: https://helm.elastic.co
+
+    - name: Deploy ECK operator
+      kubernetes.core.helm:
+        name: elastic-operator
+        chart_ref: elastic/eck-operator
+        release_namespace: elk
+        create_namespace: true
+        chart_version : "2.2.0"
+
+    - name: Deploy elasticsearch-kibana-filebeat
+      kubernetes.core.helm:
+        name: eck
+        chart_ref: "{{ eck_helm_chart_dir }}"
+        release_namespace: elk
+        create_namespace: true
+        values_files:
+          - "{{ helm_values_dir }}/environments/{{ RequestsEnv }}/eck-values.yaml"
+
+    - name: "Deploy ALL f_item charts"
+      kubernetes.core.helm:
+        name: "{{ item }}"
+        chart_ref: "{{ helm_charts_dir }}"
+        release_namespace: "{{ Namespace }}"
+        create_namespace: yes
+        values_files:
+          - "{{ helm_values_dir }}/default/{{ item }}-values.yaml"
+          - "{{ helm_values_dir }}/environments/{{ Environment }}/{{ item }}-values.yaml"
+          - "{{ helm_values_dir }}/environments/general/{{ RequestsEnv }}.yaml"
+          - "{{ helm_values_dir }}/environments/{{ RequestsEnv }}/{{ item }}-values.yaml"
+        force: true
+        kubeconfig: "/root/.kube/config"
+      loop: "{{ f_item_app_list }}"
+      when: allCharts == "true"
+
+    - name: "Deploy f_item chart"
+      kubernetes.core.helm:
+        name: "{{ ServiceName }}"
+        chart_ref: "{{ helm_charts_dir }}"
+        release_namespace: "{{ Namespace }}"
+        create_namespace: yes
+        values:
+          image:
+            tag: "{{ ImageTag }}"
+        values_files:
+          - "{{ helm_values_dir }}/default/{{ ServiceName }}-values.yaml"
+          - "{{ helm_values_dir }}/environments/{{ Environment }}/{{ ServiceName }}-values.yaml"
+          - "{{ helm_values_dir }}/environments/general/{{ RequestsEnv }}.yaml"
+          - "{{ helm_values_dir }}/environments/{{ RequestsEnv }}/{{ ServiceName }}-values.yaml"
+        force: true
+        kubeconfig: "/root/.kube/config"
+      when: allCharts == "false"

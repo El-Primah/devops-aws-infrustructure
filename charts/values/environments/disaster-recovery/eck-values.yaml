@@ -1,0 +1,14 @@
+version: 8.2.0
+
+kibana:
+  ingress:
+    enabled: true
+    annotations:
+      nginx.ingress.kubernetes.io/proxy-ssl-verify: "true"
+    hosts:
+      - paths:
+          - path: /
+            pathType: ImplementationSpecific
+        subdomain: dr-kibana
+        domain: f_item.com
+        pathType: ImplementationSpecific

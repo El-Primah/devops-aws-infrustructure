@@ -1,0 +1,394 @@
+---
+daemonset:
+  # Annotations to apply to the daemonset
+  annotations: {}
+  # additionals labels
+  labels: {}
+  affinity: {}
+  # Include the daemonset
+  enabled: true
+  # Extra environment variables for Filebeat container.
+  envFrom: []
+  # - configMapRef:
+  #     name: config-secret
+  extraEnvs: []
+  # Allows you to add any config files in /usr/share/filebeat
+  extraVolumes:
+  - hostPath:
+      path: /LOGS
+      type: ""
+    name: logs
+  # - name: extras
+  #   emptyDir: {}
+  extraVolumeMounts:
+  - mountPath: /LOGS
+    name: logs
+
+  # - name: extras
+  #   mountPath: /usr/share/extras
+  #   readOnly: true
+  hostNetworking: false
+  # Allows you to add any config files in /usr/share/filebeat
+  # such as filebeat.yml for daemonset
+  filebeatConfig:
+    filebeat.yml: |
+      #filebeat.registry_file: /data/registry
+      filebeat.idle_timeout: 5s
+      filebeat.spool_size: 2048
+      logging.level: info
+
+      fields:
+          host: ${HOSTNAME:unknown}
+          environment: ${ENVIRONMENT:unknown}
+
+
+      filebeat.inputs:
+      - type: log
+        paths:
+          - /LOGS/*/apache2/*access.log*
+          - /LOGS/apache2/*access.log*
+        fields_under_root: true
+        fields:
+          doctype: apache_access
+
+      - type: log
+        paths:
+          - /LOGS/*/*/*laravel*
+          - /LOGS/*/*laravel*
+        fields_under_root: true
+        fields:
+          doctype: laravel
+        multiline:
+        pattern: '^\['
+        match: after
+        negate: true
+
+      - type: log
+        paths:
+        - /LOGS/*/*/*lumen*
+        - /LOGS/*/*lumen*
+        fields_under_root: true
+        fields:
+          doctype: laravel
+        multiline:
+        pattern: '^\['
+        match: after
+        negate: true
+
+
+      - type: log
+        paths:
+          - /LOGS/group1*/dfg/encoder*.log
+          - /LOGS/group1*/dfg/thermal_worker.log
+          - /LOGS/group1*/dfg/syndnet*.log
+          - /LOGS/group1*/dfg/rp_encoder.log
+          - /LOGS/group1*/dfg/lmd_adv_search.log
+          - /LOGS/group1*/dfg/lmd_adv_search_filter.log
+          - /LOGS/group1*/dfg/research_platform.log
+          - /LOGS/dfg/encoder*.log
+          - /LOGS/dfg/thermal_worker.log
+          - /LOGS/dfg/syndnet*.log
+          - /LOGS/dfg/rp_encoder.log
+          - /LOGS/dfg/lmd_adv_search.log
+          - /LOGS/dfg/lmd_adv_search_filter.log
+          - /LOGS/dfg/research_platform.log
+        fields_under_root: true
+        fields:
+          doctype: group1_python_v1
+        multiline:
+          pattern: '^\['
+          negate: true
+          match: after
+
+
+      - type: log
+        paths:
+          - /LOGS/group1*/dfg/attr.log
+          - /LOGS/group1*/dfg/g_app.log
+          - /LOGS/group1*/dfg/growthCharts.log
+          - /LOGS/group1*/dfg/thermal.log
+          - /LOGS/group1*/dfg/proc.log
+          - /LOGS/group1*/dfg/omim.log
+          - /LOGS/group1*/dfg/collater.log
+          - /LOGS/group1*/dfg/veri.log
+          - /LOGS/group1*/dfg/quick_gestalt.log
+          - /LOGS/group1*/dfg/quick_points.log
+          - /LOGS/dfg/attr.log
+          - /LOGS/dfg/g_app.log
+          - /LOGS/dfg/growthCharts.log
+          - /LOGS/dfg/thermal.log
+          - /LOGS/dfg/proc.log
+          - /LOGS/dfg/omim.log
+          - /LOGS/dfg/collater.log
+          - /LOGS/dfg/veri.log
+          - /LOGS/dfg/quick_gestalt.log
+          - /LOGS/dfg/quick_points.log
+        fields_under_root: true
+        fields:
+          doctype: group1_v1
+        multiline:
+          pattern: '^\['
+          negate: true
+          match: after
+
+
+      - type: log
+        paths:
+          - /LOGS/group1/phbot/*.log
+          - /LOGS/group1*/dfg/thCnn9HM.log
+          - /LOGS/phbot/*.log
+          - /LOGS/dfg/thCnn9HM.log
+        fields_under_root: true
+        fields:
+          doctype: group1_not_structured
+
+      - type: log
+        paths:
+          - /LOGS/install*/**/*.log*
+        fields_under_root: true
+        fields:
+          doctype: installer
+
+      - type: log
+        fields_under_root: true
+        fields:
+          doctype: python-services
+        paths:
+          - /LOGS/python-services/*/*.log
+        multiline:
+        pattern: '^\['
+        match: after
+        negate: true
+
+      - type: container
+        paths:
+          - /var/log/containers/*.log
+        processors:
+        - add_kubernetes_metadata:
+            host: ${NODE_NAME}
+            matchers:
+            - logs_path:
+                logs_path: "/var/log/containers/"
+
+      - type: log
+        paths:
+          - "/var/log/startupscript.log"
+          - "/var/log/log/kubelet.log"
+          - "/var/log/kube-proxy.log"
+          - "/var/log/kube-apiserver.log"
+          - "/var/log/kube-controller-manager.log"
+          - "/var/log/kube-scheduler.log"
+          - "/var/log/rescheduler.log"
+          - "/var/log/glbc.log"
+          - "/var/log/cluster-autoscaler.log"
+        symlinks: true
+        json.message_key: log
+        json.keys_under_root: true
+        json.add_error_key: true
+        multiline.pattern: '^\s'
+        multiline.match: after
+        fields_under_root: true
+        fields:
+          doctype: kube-logs
+        tail_files: false
+
+      - type: log
+        paths:
+          - /LOGS/tls/*.log
+        exclude_lines: ['^.*Receiving response.*' , '^.*Connection can be kept alive indefinitely.*' , '^.*Parsing response as.*', '^.*EofSensorInputStream.*']
+        fields_under_root: true
+        fields:
+          doctype: tls
+        multiline:
+          pattern: '^\['
+          negate: true
+          match: after
+
+      - type: log
+        paths:
+          - /LOGS/logstash/**.log
+          - /LOGS/kibana/**.log
+          - /LOGS/kibana-gateway/**.log
+          - /LOGS/elastalert/**.log
+          - /LOGS/curator/**.log
+        fields_under_root: true
+        fields:
+          doctype: elk
+      output.logstash:
+        hosts: ["logstash-logstash:5044"]
+
+
+  # Only used when updateStrategy is set to "RollingUpdate"
+  maxUnavailable: 1
+  nodeSelector: {}
+  # A list of secrets and their paths to mount inside the pod
+  # This is useful for mounting certificates for security other sensitive values
+  secretMounts: []
+  #  - name: filebeat-certificates
+  #    secretName: filebeat-certificates
+  #    path: /usr/share/filebeat/certs
+  # Various pod security context settings. Bear in mind that many of these have an impact on Filebeat functioning properly.
+  #
+  # - User that the container will execute as. Typically necessary to run as root (0) in order to properly collect host container logs.
+  # - Whether to execute the Filebeat containers as privileged containers. Typically not necessarily unless running within environments such as OpenShift.
+  securityContext:
+    runAsUser: 0
+    privileged: false
+  tolerations: []
+
+deployment:
+  # Annotations to apply to the deployment
+  annotations: {}
+  # additionals labels
+  labels: {}
+  affinity: {}
+  # Include the deployment
+  enabled: false
+  # Extra environment variables for Filebeat container.
+  envFrom: []
+  # - configMapRef:
+  #     name: config-secret
+  extraEnvs: []
+  # Allows you to add any config files in /usr/share/filebeat
+  extraVolumes: []
+  # - name: extras
+  #   emptyDir: {}
+  extraVolumeMounts: []
+  # - name: extras
+  #   mountPath: /usr/share/extras
+  #   readOnly: true
+  # such as filebeat.yml for deployment
+  filebeatConfig:
+    filebeat.yml: |
+      filebeat.inputs:
+        - type: log
+          paths:
+            - /usr/share/filebeat/logs/filebeat
+
+      output.elasticsearch:
+        host: "${NODE_NAME}"
+        hosts: "${ELASTICSEARCH_HOSTS:elasticsearch-master:9200}"
+
+  nodeSelector: {}
+  # A list of secrets and their paths to mount inside the pod
+  # This is useful for mounting certificates for security other sensitive values
+  secretMounts: []
+  #  - name: filebeat-certificates
+  #    secretName: filebeat-certificates
+  #    path: /usr/share/filebeat/certs
+  #
+  # - User that the container will execute as.
+  # Not necessary to run as root (0) as the Filebeat Deployment use cases do not need access to Kubernetes Node internals
+  # - Typically not necessarily unless running within environments such as OpenShift.
+  securityContext:
+    runAsUser: 0
+    privileged: false
+  tolerations: []
+
+# Replicas being used for the filebeat deployment
+replicas: 1
+
+extraContainers: ""
+# - name: dummy-init
+#   image: busybox
+#   command: ['echo', 'hey']
+
+extraInitContainers: []
+# - name: dummy-init
+
+# Root directory where Filebeat will write data to in order to persist registry data across pod restarts (file position and other metadata).
+hostPathRoot: /var/lib
+
+dnsConfig: {}
+# options:
+#   - name: ndots
+#     value: "2"
+hostAliases: []
+#- ip: "127.0.0.1"
+#  hostnames:
+#  - "foo.local"
+#  - "bar.local"
+image: "docker.elastic.co/beats/filebeat"
+imagetag: staging
+imagePullPolicy: "IfNotPresent"
+imagePullSecrets: []
+
+livenessProbe:
+  exec:
+    command:
+      - sh
+      - -c
+      - |
+        #!/usr/bin/env bash -e
+        curl --fail 127.0.0.1:5066
+  failureThreshold: 3
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 5
+
+readinessProbe:
+  exec:
+    command:
+      - sh
+      - -c
+      - |
+        #!/usr/bin/env bash -e
+        filebeat test output
+  failureThreshold: 3
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 5
+
+# Whether this chart should self-manage its service account, role, and associated role binding.
+managedServiceAccount: true
+
+clusterRoleRules:
+  - apiGroups:
+      - ""
+    resources:
+      - namespaces
+      - nodes
+      - pods
+    verbs:
+      - get
+      - list
+      - watch
+
+podAnnotations: {}
+# iam.amazonaws.com/role: es-cluster
+
+# Custom service account override that the pod will use
+serviceAccount: ""
+
+# Annotations to add to the ServiceAccount that is created if the serviceAccount value isn't set.
+serviceAccountAnnotations: {}
+# eks.amazonaws.com/role-arn: arn:aws:iam::343434343434:role/k8s.clustername.namespace.serviceaccount
+
+# How long to wait for Filebeat pods to stop gracefully
+terminationGracePeriod: 30
+# This is the PriorityClass settings as defined in
+# https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/#priorityclass
+priorityClassName: ""
+
+updateStrategy: RollingUpdate
+
+# Override various naming aspects of this chart
+# Only edit these if you know what you're doing
+nameOverride: ""
+fullnameOverride: ""
+
+# DEPRECATED
+affinity: {}
+envFrom: []
+extraEnvs: []
+extraVolumes: []
+extraVolumeMounts: []
+# Allows you to add any config files in /usr/share/filebeat
+# such as filebeat.yml for both daemonset and deployment
+filebeatConfig: {}
+nodeSelector: {}
+podSecurityContext: {}
+resources: {}
+secretMounts: []
+tolerations: []
+labels: {}

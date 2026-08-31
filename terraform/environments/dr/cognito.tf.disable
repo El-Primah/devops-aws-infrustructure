@@ -1,0 +1,191 @@
+# ===== CONSUMER COGNITO =====
+resource "aws_cognito_user_pool" "consumer_cognito" {
+  account_recovery_setting {
+    recovery_mechanism {
+      name     = "verified_email"
+      priority = "1"
+    }
+  }
+
+  admin_create_user_config {
+    allow_admin_create_user_only = "false"
+  }
+
+  auto_verified_attributes = ["email"]
+  deletion_protection      = "ACTIVE"
+
+  email_configuration {
+    email_sending_account = "COGNITO_DEFAULT"
+  }
+
+  lambda_config {
+    create_auth_challenge          = aws_lambda_function.create_auth_challenge.arn
+    custom_message                 = aws_lambda_function.cognito_code_template.arn
+    define_auth_challenge          = aws_lambda_function.define_auth_challenge.arn
+    verify_auth_challenge_response = aws_lambda_function.verify_auth_challenge_response.arn
+  }
+
+  mfa_configuration = "OFF"
+  name              = var.cognito_user_pool_consumer_name
+
+  password_policy {
+    minimum_length                   = "8"
+    password_history_size            = "0"
+    require_lowercase                = "true"
+    require_numbers                  = "true"
+    require_symbols                  = "true"
+    require_uppercase                = "true"
+    temporary_password_validity_days = "7"
+  }
+
+  schema {
+    attribute_data_type      = "String"
+    developer_only_attribute = "false"
+    mutable                  = "true"
+    name                     = "acknowledgement"
+    required                 = "false"
+
+    string_attribute_constraints {
+      max_length = "5"
+      min_length = "4"
+    }
+  }
+
+  schema {
+    attribute_data_type      = "String"
+    developer_only_attribute = "false"
+    mutable                  = "true"
+    name                     = "first_name"
+    required                 = "false"
+
+        string_attribute_constraints {}
+  }
+
+  schema {
+    attribute_data_type      = "String"
+    developer_only_attribute = "false"
+    mutable                  = "true"
+    name                     = "last_name"
+    required                 = "false"
+
+        string_attribute_constraints {}
+  }
+
+  schema {
+    attribute_data_type      = "String"
+    developer_only_attribute = "false"
+    mutable                  = "true"
+    name                     = "phone"
+    required                 = "false"
+
+        string_attribute_constraints {}
+  }
+
+  schema {
+    attribute_data_type      = "String"
+    developer_only_attribute = "false"
+    mutable                  = "true"
+    name                     = "phone_veri_status"
+    required                 = "false"
+
+        string_attribute_constraints {}
+  }
+
+  sign_in_policy {
+    allowed_first_auth_factors = ["PASSWORD"]
+  }
+
+  sms_configuration {
+    external_id    = var.cognito_sms_external_id
+    sns_caller_arn = aws_iam_role.congito_sms_role.arn
+    sns_region     = data.aws_region.current.name
+  }
+
+  user_pool_tier      = "LITE"
+  username_attributes = ["email"]
+
+  username_configuration {
+    case_sensitive = "false"
+  }
+
+  verification_message_template {
+    default_email_option = "CONFIRM_WITH_CODE"
+    email_message        = "Your verification code is {####}."
+    email_subject        = "Your verification code"
+    sms_message          = "Your verification code is {####}."
+  }
+}
+
+
+
+# ===== cor_item COGNITO =====
+resource "aws_cognito_user_pool" "cor_item_cognito" {
+  account_recovery_setting {
+    recovery_mechanism {
+      name     = "verified_email"
+      priority = "1"
+    }
+  }
+
+  admin_create_user_config {
+    allow_admin_create_user_only = "false"
+  }
+
+  auto_verified_attributes = ["email"]
+  deletion_protection      = "INACTIVE"
+
+  email_configuration {
+    email_sending_account = "COGNITO_DEFAULT"
+  }
+
+  lambda_config {
+    custom_message = aws_lambda_function.cognito_code_template.arn
+  }
+
+  mfa_configuration = "OFF"
+  name              = var.cognito_user_pool_cor_item_name
+
+  password_policy {
+    minimum_length                   = "8"
+    password_history_size            = "0"
+    require_lowercase                = "true"
+    require_numbers                  = "true"
+    require_symbols                  = "true"
+    require_uppercase                = "true"
+    temporary_password_validity_days = "7"
+  }
+
+  schema {
+    attribute_data_type      = "String"
+    developer_only_attribute = "false"
+    mutable                  = "true"
+    name                     = "acknowledgement"
+    required                 = "false"
+
+    string_attribute_constraints {
+      max_length = "5"
+      min_length = "4"
+    }
+  }
+
+  sign_in_policy {
+    allowed_first_auth_factors = ["PASSWORD"]
+  }
+
+  sms_configuration {
+    external_id    = var.cognito_sms_external_id
+    sns_caller_arn = aws_iam_role.congito_sms_role.arn
+    sns_region     = data.aws_region.current.name
+  }
+
+  user_pool_tier      = "LITE"
+  username_attributes = ["email"]
+
+  username_configuration {
+    case_sensitive = "false"
+  }
+
+  verification_message_template {
+    default_email_option = "CONFIRM_WITH_CODE"
+  }
+}

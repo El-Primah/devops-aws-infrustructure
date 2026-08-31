@@ -1,0 +1,9 @@
+
+# production domains
+global:
+  domains:
+    external: staging.comp.com
+    internal: staging.f_item.com
+
+envName: staging
+avalabilityZone: eu-west-1

@@ -1,0 +1,9 @@
+service:
+  enabled: false
+
+
+SecretStore:
+  enabled: false
+
+ExternalSecrets:
+  enabled: false

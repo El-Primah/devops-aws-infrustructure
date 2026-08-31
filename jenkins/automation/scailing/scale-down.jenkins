@@ -1,0 +1,44 @@
+pipeline {
+    agent { label 'devops' }
+    options {
+        timestamps ()
+        timeout(time: 30, unit: 'MINUTES')
+    }
+    triggers {
+        cron('0 23 * * * ')
+    }
+    stages {
+        stage('scale down replicas') {
+            steps {
+                dir('jenkins'){
+                        sh ('''#!/bin/bash
+                            set +x
+                            
+                            bash ../scripts/ssm-send-command.sh i-0e7a6c5fcfd8b38c0 ./automation/scailing/ssm-scale-down.json
+                        ''')
+                }
+            }
+        }
+
+        stage('K8S-Nodes-Stop') {
+            steps {
+                sh ('''#!/bin/bash
+                    set +v
+                    curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+                    sudo mv /tmp/eksctl /usr/local/bin
+                    eksctl scale nodegroup --cluster f_item-automation-dev --region eu-west-1 --name prod-copy-encrypted --nodes 0 --nodes-min=0 --nodes-max=1
+                ''')
+            }
+        }
+        stage('RDS-Stop') {
+            steps {
+                sh "aws rds stop-db-instance --db-instance-identifier automation-dev-rds --region eu-west-1"
+            }
+        }
+        stage('Bastion-host-Stop') {
+            steps {
+                sh "aws ec2 stop-instances --instance-ids i-0e7a6c5fcfd8b38c0 --region eu-west-1"
+            }
+        }
+    }
+}

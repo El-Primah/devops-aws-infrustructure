@@ -1,0 +1,95 @@
+
+deployment:
+  enabled: false
+
+nameOverride: ""
+fullnameOverride: "comp-redis"
+
+statefulset:
+  replicas: 1
+
+persistentVolumeClaim:
+  annotations:
+    volume.beta.kubernetes.io/storage-provisioner: ebs.csi.aws.com
+  accessModes:
+    - ReadWriteOnce
+  storage: 10Gi
+  storageClassName: gp2
+
+imagePullSecrets:
+  - name: regsecret
+
+containers:
+  comp-redis:
+    image:
+      repository: 343434343434.dkr.ecr.eu-west-1.amazonaws.com/comp/redis
+      pullPolicy: IfNotPresent
+      tag: latest
+    env: []
+    securityContext: {}
+    ports:
+      - name: redis
+        containerPort: 6379
+        protocol: TCP
+    resources:
+      requests:
+        cpu: 200m
+        memory: 4880Mi
+    livenessProbe:
+      exec:
+        command:
+          - sh
+          - -c
+          - redis-cli -h $(hostname) ping
+      failureThreshold: 3
+      initialDelaySeconds: 20
+      periodSeconds: 3
+      successThreshold: 1
+      timeoutSeconds: 1
+    readinessProbe:
+      exec:
+        command:
+          - sh
+          - -c
+          - redis-cli -h $(hostname) ping
+      failureThreshold: 3
+      initialDelaySeconds: 15
+      periodSeconds: 10
+      successThreshold: 1
+      timeoutSeconds: 5
+    volumeMounts:
+      - name: comp-redis-data-volume
+        mountPath: /data
+
+serviceAccount:
+  create: false
+  annotations: {}
+  name: "default"
+
+podAnnotations: {}
+
+podSecurityContext: {}
+
+service:
+  enabled: true
+  name: redis
+  type: ClusterIP
+  annotations: {}
+  port: 6379
+  ports:
+    - name: redis
+      port: 6379
+      protocol: TCP
+      targetPort: 6379
+
+ingress:
+  enabled: false
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+volumes:
+  - name: comp-redis-data-volume
+    persistentVolumeClaim:
+      claimName: comp-redis-data

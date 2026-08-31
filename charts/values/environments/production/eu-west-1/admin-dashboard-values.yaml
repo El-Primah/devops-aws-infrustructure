@@ -1,0 +1,24 @@
+service:
+  type: NodePort
+  ports:
+  - name: https
+    nodePort: 32139
+    port: 443
+    protocol: TCP
+    targetPort: 80
+  - name: http
+    nodePort: 32130
+    port: 80
+    protocol: TCP
+    targetPort: 443
+ingress:
+  enabled: true
+  hosts:
+  - paths:
+    - path: /
+      pathType: ImplementationSpecific
+    subdomain: dashboard
+image:
+  repository: 343434343434.dkr.ecr.eu-west-1.amazonaws.com/comp/admin-dashboard
+  pullPolicy: Always
+  tag: production

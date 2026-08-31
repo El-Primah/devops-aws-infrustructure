@@ -1,0 +1,21 @@
+apiVersion: kibana.k8s.elastic.co/v1
+kind: Kibana
+metadata:
+  name: eck-kibana
+  namespace: elk
+spec:
+  version: 8.2.0
+  count: 1
+  elasticsearchRef:
+    name: eck-elasticsearch
+    namespace: elk
+  config:
+    monitoring.kibana.collection.enabled: false
+  podTemplate:
+    metadata:
+      labels:
+        scrape: kb
+  http:
+    tls:
+      selfSignedCertificate:
+        disabled: true

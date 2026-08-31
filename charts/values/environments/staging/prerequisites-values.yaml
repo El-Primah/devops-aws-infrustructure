@@ -1,0 +1,8 @@
+envName: disaster-recovery
+avalabilityZone: eu-west-1
+  
+service:
+  enabled: true
+  type: ExternalName
+  name: mysql
+  externalName: stagingmysql-y_app.c7ff9yv9qq2o.eu-west-1.rds.amazonaws.com

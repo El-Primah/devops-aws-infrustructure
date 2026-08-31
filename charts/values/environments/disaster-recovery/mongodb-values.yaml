@@ -1,0 +1,7 @@
+containers:
+  mongodb:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 4000m
+        

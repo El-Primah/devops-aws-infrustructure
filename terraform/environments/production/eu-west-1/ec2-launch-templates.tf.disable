@@ -1,0 +1,28 @@
+module "eks_node_group_launch_template" {
+  source      = "../../../modules/ec2_launch_templates"
+  description = ""
+  name        = var.eks_node_group_launch_template
+
+  tags = {
+    "eks:cluster-name"   = var.eks_cluster_name,
+    "eks:nodegroup-name" = var.eks_default_node_group_name
+  }
+
+  encrypted = "true"
+  kms_key_id = "arn:aws:kms:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:key/60ab2221-fd3b-405b-bc17-c5b2ff0a2776"
+
+  tag_specifications = [
+    {
+      resource_type = "instance"
+      tags = {
+        Name = "eks-comp-prod-tf-on-demand"
+      }
+    },
+    {
+      resource_type = "volume"
+      tags = {
+        Name = "eks-comp-prod-tf-on-demand"
+      }
+    }
+  ]
+}

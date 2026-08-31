@@ -1,0 +1,60 @@
+apiVersion: beat.k8s.elastic.co/v1beta1
+kind: Beat
+metadata:
+  name: {{ template "eck.fullname" . }}-filebeat
+  namespace: {{ .Values.namespace }}
+spec:
+  type: filebeat
+  version: {{ .Values.version }}
+  #elasticsearchRef:
+  #  name: elasticsearch-monitoring-es-default
+  #  namespace: elk
+  config:
+    {{- toYaml .Values.filebeat.config | nindent 4 }}
+  daemonSet:
+    podTemplate:
+      spec:
+        dnsPolicy: ClusterFirstWithHostNet
+        hostNetwork: false
+        securityContext:
+          runAsUser: 0
+        containers:
+        - name: filebeat
+          env:
+          - name: ELASTICSEARCH_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: elastic
+                name: eck-elasticsearch-es-elastic-user
+          - name: NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+          volumeMounts:
+          - mountPath: /usr/share/filebeat/config/certs
+            name: certificate
+          - mountPath: /LOGS
+            name: logs
+          - name: varlogcontainers
+            mountPath: /var/log/containers
+          - name: varlogpods
+            mountPath: /var/log/pods
+          - name: varlibdockercontainers
+            mountPath: /var/lib/docker/containers
+        volumes:
+        - name: certificate
+          secret:
+            secretName: eck-elasticsearch-es-default-es-transport-certs
+        - hostPath:
+            path: /LOGS
+            type: ""
+          name: logs
+        - name: varlogcontainers
+          hostPath:
+            path: /var/log/containers
+        - name: varlogpods
+          hostPath:
+            path: /var/log/pods
+        - name: varlibdockercontainers
+          hostPath:
+            path: /var/lib/docker/containers

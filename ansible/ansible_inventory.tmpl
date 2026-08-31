@@ -1,0 +1,3 @@
+ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+[k8s]
+${vm-ip} ansible_host=${vm-ip} ansible_user=jenkins ansible_connection=ssh

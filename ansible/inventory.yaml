@@ -1,0 +1,6 @@
+all:
+  hosts:
+    k8s:
+      ansible_host: changeme
+      ansible_user: jenkins
+      ansible_ssh_private_key_file: change-ssh-file-path

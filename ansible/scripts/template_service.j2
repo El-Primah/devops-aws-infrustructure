@@ -1,0 +1,14 @@
+[Unit]
+Description={{ item }} script
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/home/jenkins/{{ item }}.sh
+Restart=always
+User=root
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

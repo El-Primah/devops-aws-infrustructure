@@ -1,0 +1,86 @@
+#!/bin/bash -xe
+mkdir -p /home/ubuntu/.kube
+chown -R ubuntu:users /home/ubuntu/.kube
+
+useradd -m jenkins
+usermod -aG sudo jenkins
+echo "jenkins ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers.d/cloud-init-user-jenkins
+cp -r /home/ubuntu/.ssh /home/jenkins/
+chown jenkins:jenkins -R /home/jenkins/.ssh
+chmod 600 /home/jenkins/.ssh/authorized_keys
+
+### kubectl install
+curl -LO https://dl.k8s.io/release/v${cluster_version}.0/bin/linux/amd64/kubectl
+
+# Download and install AWS CLI v2
+sudo apt-get update && sudo apt-get install unzip && sudo curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && sudo unzip awscliv2.zip && sudo ./aws/install && sudo rm -rf aws awscliv2.zip
+
+aws eks update-kubeconfig --region eu-central-1 --name f_item-dr
+
+# sudo apt-get update && sudo apt-get -y install awscli
+sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+
+##### helm installation
+curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+chmod 700 get_helm.sh
+
+#./get_helm.sh
+DESIRED_VERSION=v3.10.1 bash get_helm.sh
+
+helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+helm repo add external-secrets https://charts.external-secrets.io
+helm repo update
+
+cat <<EOF > ingress-internal.yaml
+controller:
+  service:
+    annotations:
+      service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+      service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "ip"
+      service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
+      service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "https"
+      service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "arn:aws:acm:eu-west-1:101010101010:certificate/11a111aa-11a1-1111-1111-1a1111a11a11"
+EOF
+
+cat <<EOF > ingress-external.yaml
+controller:
+  containerPort:
+    http: 80
+    https: 80
+    tohttps: 2443
+  config:
+    http-snippet: |
+      server {
+        listen 2443;
+        return 308 https://\$host\$request_uri;
+      }
+  service:
+    annotations:
+      service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+      service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "ip"
+      service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
+      service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "https"
+      service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "arn:aws:acm:eu-west-1:101010101010:certificate/22222a2a-2a22-2222-2222-2a222a222222"
+    loadBalancerSourceRanges:
+      - 0.0.0.0/0
+    enableHttp: true
+    enableHttps: true
+    ports:
+      https: 443
+      http: 80
+    targetPorts:
+      https: http
+      http: tohttps
+  ingressClassResource:
+    name: nginx-external
+    controllerValue: "k8s.io/nginx-external"
+EOF
+
+KUBECONFIG=/root/.kube/config helm upgrade -i nginx-ingress-external ingress-nginx/ingress-nginx \
+  --namespace ingress-nginx --create-namespace -f ingress-external.yaml --version 4.12.0
+
+KUBECONFIG=/root/.kube/config helm upgrade -i nginx-ingress ingress-nginx/ingress-nginx \
+  --namespace ingress-nginx --create-namespace -f ingress-internal.yaml --version 4.12.0
+
+KUBECONFIG=/root/.kube/config helm upgrade -i external-secrets external-secrets/external-secrets \
+  --namespace external-secrets --create-namespace --version 1.0.0

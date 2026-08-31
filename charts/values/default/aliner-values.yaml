@@ -1,0 +1,82 @@
+
+deployment:
+  enabled: true
+
+replicaCount: 1
+
+image:
+  repository: 343434343434.dkr.ecr.eu-west-1.amazonaws.com/comp/aliner
+  pullPolicy: IfNotPresent
+  tag: latest
+
+imagePullSecrets:
+  - name: regsecret
+
+nameOverride: ""
+fullnameOverride: "aliner"
+
+serviceAccount:
+  create: false
+  annotations: {}
+  name: "default"
+
+podAnnotations: {}
+
+podSecurityContext: {}
+
+securityContext: {}
+
+ports:
+  - name: http
+    containerPort: 80
+    protocol: TCP
+  - name: metrics
+    containerPort: 9000
+    protocol: TCP
+
+service:
+  type: ClusterIP
+  annotations: {}
+  port: 80
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: 80
+
+ingress:
+  enabled: false
+
+resources:
+  requests:
+    cpu: 800m
+    memory: 750Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+env:
+  - name: ENVIRONMENT
+    valueFrom:
+      configMapKeyRef:
+        key: environment
+        name: env-config
+
+volumeMounts:
+  - name: logs
+    mountPath: /var/log
+
+volumes:
+  - name: logs
+    hostPath:
+      path: /LOGS/aliner
+      type: ""

@@ -1,0 +1,6 @@
+containers:
+  group1-redis:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 601Mi

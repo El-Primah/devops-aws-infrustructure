@@ -1,0 +1,15 @@
+{{- if .Values.configmap }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.configmap.name | default (printf "%s-configmap" (include "application.fullname" .)) }}
+  labels:
+    {{- include "application.labels" . | nindent 4 }}
+  {{- with .Values.configmap.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+data:
+  environment: {{ .Values.envName }}
+  zone: {{ .Values.avalabilityZone }}
+{{- end }}

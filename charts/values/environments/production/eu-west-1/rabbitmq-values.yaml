@@ -1,0 +1,41 @@
+service:
+  type: NodePort
+  ports:
+  - name: tcp-5672
+    nodePort: 30828
+    port: 5672
+    protocol: TCP
+    targetPort: 5672
+  - name: tcp-15672
+    nodePort: 32097
+    port: 15672
+    protocol: TCP
+    targetPort: 15672
+  - name: tcp-80
+    nodePort: 31171
+    port: 80
+    protocol: TCP
+    targetPort: 15672
+  - name: https
+    nodePort: 30963
+    port: 443
+    protocol: TCP
+    targetPort: 15672
+
+ingress:
+  enabled: true
+  annotations: {}
+  servicePort: 80
+  ingressClassName: "nginx"
+  useGlobalDomain: "internal"
+  hosts:
+    - subdomain: rabbitmq-dashboard
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+
+image:
+  repository: 343434343434.dkr.ecr.eu-west-1.amazonaws.com/comp/rabbitmq
+  pullPolicy: IfNotPresent
+  tag: production

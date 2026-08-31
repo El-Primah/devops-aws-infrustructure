@@ -1,0 +1,23 @@
+service:
+  type: NodePort
+  ports:
+  - name: https
+    nodePort: 30517
+    port: 443
+    protocol: TCP
+    targetPort: 80
+  - name: http
+    nodePort: 32379
+    port: 80
+    protocol: TCP
+    targetPort: 90
+ingress:
+  hosts:
+  - paths:
+    - path: /
+      pathType: ImplementationSpecific
+    subdomain: app
+image:
+  repository: 343434343434.dkr.ecr.eu-west-1.amazonaws.com/comp/f_item-gateway
+  pullPolicy: IfNotPresent
+  tag: production

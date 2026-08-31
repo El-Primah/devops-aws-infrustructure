@@ -1,0 +1,83 @@
+
+deployment:
+  enabled: true
+
+replicaCount: 1
+
+image:
+  repository: 343434343434.dkr.ecr.eu-west-1.amazonaws.com/comp/resources
+  pullPolicy: IfNotPresent
+  tag: latest
+
+imagePullSecrets:
+  - name: regsecret
+
+nameOverride: ""
+fullnameOverride: "resource"
+
+serviceAccount:
+  create: false
+  annotations: {}
+  name: "default"
+
+podAnnotations: {}
+
+podSecurityContext: {}
+
+securityContext: {}
+
+ports: []
+
+service:
+  type: ClusterIP
+  annotations: {}
+  port: 98
+  ports:
+    - name: http
+      port: 98
+      protocol: TCP
+      targetPort: 98
+
+ingress:
+  enabled: true
+  annotations: {}
+  servicePort: 80
+  ingressClassName: "nginx"
+  useGlobalDomain: "internal"
+  hosts:
+    - subdomain: resource
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 140Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+env:
+  - name: ENVIRONMENT
+    valueFrom:
+      configMapKeyRef:
+        key: environment
+        name: env-config
+
+probes:
+  liveness: {}
+  readiness: {}
+
+volumeMounts: []
+volumes: []

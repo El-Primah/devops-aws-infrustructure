@@ -1,0 +1,35 @@
+{{- if .Values.kibana.ingress.enabled -}}
+{{- $svcName := .Values.kibana.service.name -}}
+{{- $svcPort := .Values.kibana.service.port -}}
+{{- if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
+apiVersion: networking.k8s.io/v1
+{{- else -}}
+apiVersion: extensions/v1
+{{- end }}
+kind: Ingress
+metadata:
+  name: kibana
+  labels:
+    {{- include "eck.labels" . | nindent 4 }}
+  {{- with .Values.kibana.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  ingressClassName: nginx
+  rules:
+    {{- range .Values.kibana.ingress.hosts }}
+    - host: "{{ .subdomain }}.{{ .domain }}"
+      http:
+        paths:
+          {{- range .paths }}
+          - path: {{ .path }}
+            pathType: {{ .pathType }}
+            backend:
+              service:
+                name: eck-kibana-kb-http
+                port:
+                  number: {{ $svcPort }}
+          {{- end }}
+    {{- end }}
+  {{- end }}

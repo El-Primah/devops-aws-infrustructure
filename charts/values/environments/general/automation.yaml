@@ -1,0 +1,8 @@
+
+global:
+  domains:
+    external: automation.comp.accept
+    internal: automation-dev.f_item.com
+
+envName: staging
+avalabilityZone: eu-west-1

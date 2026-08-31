@@ -1,0 +1,60 @@
+helm_values_dir: "/home/jenkins/workspace/values"
+helm_charts_dir: "/home/jenkins/workspace/application"
+eck_helm_chart_dir: "/home/jenkins/workspace/eck"
+
+script_list:
+  - check-mongo
+  - check-redis
+
+f_item_app_list:
+  - prerequisites
+  - group1-redis
+  - comp-redis
+  - mongodb
+  - beanstalk
+  - admin-dashboard
+  - group1-attr
+  - group1-handler
+  - group1-crpt
+  - group1-g_app
+  - group1-g_app-api
+  - group1-ft-work
+  - group1-thermal
+  - group1-thermal-work
+  - group1-library
+  - group1-proc
+  - group1-finder
+  - group1-collater
+  - group1-poster
+  - group1-p-ctrl
+  - group1-p-work
+  - group1-quick-post
+  - group1-ar
+  - group1-sync-r-12
+  - group1-sync-r-9
+  - group1-sync-r-8
+  - group1-sync-r-7
+  - group1-sync-r-4
+  - group1-veri
+  - aliner
+  - engine
+  - base-console
+  - floppy
+  - bunny
+  - keeper
+  - consumer-expanded-logic 
+  - daemon
+  - forshmak
+  - meme-cloud
+  - meme-gateway
+  - item-app
+  - labs
+  - library-api
+  - aggregator-svc
+  - platform-api
+  - que_app
+  - rabbitmq
+  - research
+  - resource
+  - shepherd
+  - web-client

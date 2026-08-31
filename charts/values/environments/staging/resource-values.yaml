@@ -1,0 +1,12 @@
+ingress:
+  enabled: true
+  annotations: {}
+  hosts:
+  - paths:
+    - path: /
+      pathType: ImplementationSpecific
+    subdomain: resource
+image:
+  repository: 343434343434.dkr.ecr.eu-west-1.amazonaws.com/comp/resources
+  pullPolicy: IfNotPresent
+  tag: staging

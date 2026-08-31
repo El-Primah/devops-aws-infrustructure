@@ -1,0 +1,33 @@
+- name: "Deploy all charts"
+  kubernetes.core.helm:
+    name: "{{ item }}"
+    chart_ref: "{{ helm_charts_dir }}"
+    release_namespace: "{{ Namespace }}"
+    create_namespace: yes
+    values_files:
+      - "{{ helm_values_dir }}/default/{{ item }}-values.yaml"
+      - "{{ helm_values_dir }}/environments/{{ Environment }}/{{ item }}-values.yaml"
+      - "{{ helm_values_dir }}/environments/general/{{ RequestsEnv }}.yaml"
+      - "{{ helm_values_dir }}/environments/{{ RequestsEnv }}/{{ item }}-values.yaml"
+    force: true
+    kubeconfig: "/root/.kube/config"
+  loop: "{{ f_item_app_list }}"
+  when: allCharts == "true"
+
+- name: "Deploy chart"
+  kubernetes.core.helm:
+    name: "{{ ServiceName }}"
+    chart_ref: "{{ helm_charts_dir }}"
+    release_namespace: "{{ Namespace }}"
+    create_namespace: yes
+    values:
+      image:
+        tag: "{{ ImageTag }}"
+    values_files:
+      - "{{ helm_values_dir }}/default/{{ ServiceName }}-values.yaml"
+      - "{{ helm_values_dir }}/environments/{{ Environment }}/{{ ServiceName }}-values.yaml"
+      - "{{ helm_values_dir }}/environments/general/{{ RequestsEnv }}.yaml"
+      - "{{ helm_values_dir }}/environments/{{ RequestsEnv }}/{{ ServiceName }}-values.yaml"
+    force: true
+    kubeconfig: "/root/.kube/config"
+  when: allCharts == "false"

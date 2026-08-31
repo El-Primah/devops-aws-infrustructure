@@ -1,0 +1,35 @@
+
+deployment:
+  enabled: false
+
+nameOverride: ""
+fullnameOverride: "prerequisites"
+
+configmap:
+  name: env-config
+  annotations: {}
+
+envName: disaster-recovery
+avalabilityZone: eu-west-1
+  
+service:
+  enabled: true
+  type: ExternalName
+  annotations: {}
+  name: mysql
+  externalName: stagingmysql-y_app.c7ff9yv9qq2o.eu-west-1.rds.amazonaws.com
+  ports: []
+
+storageClass:
+  name: gp3
+  annotations:
+    storageclass.beta.kubernetes.io/is-default-class: "true"
+  parameters:
+    type: gp3
+    encrypted: "true"
+  provisioner: ebs.csi.aws.com
+  reclaimPolicy: Delete
+  volumeBindingMode: Immediate
+
+ingress:
+  enabled: false

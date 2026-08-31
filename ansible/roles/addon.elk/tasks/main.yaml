@@ -1,0 +1,21 @@
+- name: Configure elastic repository
+  kubernetes.core.helm_repository:
+    name: elastic
+    repo_url: https://helm.elastic.co
+
+- name: Deploy ECK operator
+  kubernetes.core.helm:
+    name: elastic-operator
+    chart_ref: elastic/eck-operator
+    release_namespace: elk
+    create_namespace: true
+    chart_version : "2.2.0"
+
+- name: Deploy elasticsearch-kibana-filebeat
+  kubernetes.core.helm:
+    name: eck
+    chart_ref: "{{ eck_helm_chart_dir }}"
+    release_namespace: elk
+    create_namespace: true
+    values_files:
+      - "{{ helm_values_dir }}/environments/{{ RequestsEnv }}/eck-values.yaml"

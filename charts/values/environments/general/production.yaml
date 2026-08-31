@@ -1,0 +1,9 @@
+
+# production domains
+global:
+  domains:
+    external: comp.com
+    internal: f_item.com
+
+envName: production
+avalabilityZone: eu-west-1

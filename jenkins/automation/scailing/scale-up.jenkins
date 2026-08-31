@@ -1,0 +1,82 @@
+pipeline {
+    agent { label 'devops' }
+    options {
+        timestamps ()
+        timeout(time: 30, unit: 'MINUTES')
+    }
+    stages {
+        stage('RDS-Start') {
+            steps {
+                sh ('''#!/bin/bash
+                    set +v
+                    if ! aws rds describe-db-instances --db-instance-identifier automation-dev-rds --region eu-west-1 | grep -q '"DBInstanceStatus": "available"'  ; then
+                        aws rds start-db-instance --db-instance-identifier automation-dev-rds --region eu-west-1
+                        echo -e  "\nDB is started\n"
+                    else
+                        echo -e "\nDB is already started\n"
+                    fi
+                    until aws rds describe-db-instances --db-instance-identifier automation-dev-rds --region eu-west-1 | grep -q '"DBInstanceStatus": "available"'
+                    do
+	                    echo "DB is not in running state"
+	                    sleep 10s
+                    done
+                    echo -e "\nDB is available now\n"
+                ''')
+            }
+        }
+		stage('Bastion-host-start') {
+            steps {
+                sh "aws ec2 start-instances --instance-ids i-0e7a6c5fcfd8b38c0 --region eu-west-1"
+            }
+        }
+        stage('K8S-Node-start') {
+            steps {
+                sh ('''#!/bin/bash
+                    set +v
+                    curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+                    sudo mv /tmp/eksctl /usr/local/bin
+                    /usr/local/bin/eksctl scale nodegroup --cluster f_item-automation-dev --region eu-west-1 --name prod-copy-encrypted --nodes 7 --nodes-min=7 --nodes-max=7
+                ''')
+            }
+        }
+        stage('register-targets') {
+            steps {
+                sh ('''#!/bin/bash
+                    set +v
+					sleep 120;
+                    instances=$(aws ec2 describe-instances --region eu-west-1 --filters "Name=tag:kubernetes.io/cluster/f_item-automation-dev,Values=owned" "Name=instance-state-name,Values=running" --query "Reservations[].Instances[].InstanceId" --output text)
+                    echo "instances"
+                    echo $instances
+                    
+                    for instance in $instances; do
+                        aws elbv2 register-targets --target-group-arn arn:aws:elasticloadbalancing:eu-west-1:343434343434:targetgroup/meme-automation-http/9e08b3d374b8aeb7 --targets Id=$instance
+                    done
+
+                    for instance in $instances; do
+                        aws elbv2 register-targets --target-group-arn arn:aws:elasticloadbalancing:eu-west-1:343434343434:targetgroup/meme-automation-https/c79244456f347362 --targets Id=$instance
+                    done
+                ''')
+            }
+        }
+
+        stage('scale up replicas') {
+            steps {
+                dir('jenkins'){
+                        sh ('''#!/bin/bash
+                            set +x
+                            pwd
+                            bash ../scripts/ssm-send-command.sh i-0e7a6c5fcfd8b38c0 ./automation/scailing/ssm-scale-up.json
+
+
+                            until curl -s -o /dev/null -w "%{http_code}" https://app.automation-dev.f_item.com | grep 200
+                            do
+                                echo "Checking site https://app.automation-dev.f_item.com up status"
+                                sleep 10s
+                            done
+                            echo -e "\nSite https://app.automation-dev.f_item.com is up and ready for use\n"
+                        ''')
+                }
+            }
+        }
+    }
+}

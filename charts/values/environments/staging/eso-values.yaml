@@ -1,0 +1,80 @@
+service:
+  enabled: false
+
+SecretStore:
+  enabled: true
+  name: aws-secretsmanager
+  region: eu-west-1
+
+ExternalSecrets:
+  enabled: true
+  secrets:
+    - name: mysql-secrets
+      refreshInterval: 1h
+      target:
+        secretName: mysql-secrets-staging
+      data:
+        - secretKey: mysql_host
+          remoteRef:
+            key: mysql-staging
+            property: mysql_host
+        - secretKey: mysql_root_password
+          remoteRef:
+            key: mysql-staging
+            property: mysql_root_password
+        - secretKey: MYSQL_ROOT_PASSWORD
+          remoteRef:
+            key: mysql-staging
+            property: mysql_root_password
+        - secretKey: mysql_user
+          remoteRef:
+            key: mysql-staging
+            property: mysql_user
+        - secretKey: mysql_password
+          remoteRef:
+            key: mysql-staging
+            property: mysql_password
+
+    - name: mongo-secrets
+      refreshInterval: 1h
+      target:
+        secretName: mongo-secrets-staging
+      data:
+        - secretKey: mongo_host
+          remoteRef:
+            key: mongo-staging
+            property: mongo_host
+        - secretKey: mongo_admin_user
+          remoteRef:
+            key: mongo-staging
+            property: mongo_admin_user
+        - secretKey: mongo_admin_password
+          remoteRef:
+            key: mongo-staging
+            property: mongo_admin_password
+        - secretKey: mongo_user
+          remoteRef:
+            key: mongo-staging
+            property: mongo_user
+        - secretKey: mongo_password
+          remoteRef:
+            key: mongo-staging
+            property: mongo_password
+
+    - name: group1-redis-secrets
+      refreshInterval: 1h
+      target:
+        secretName: group1-redis-secrets-staging
+      data:
+        - secretKey: group1_redis_host
+          remoteRef:
+            key: group1-redis-staging
+            property: group1_redis_host
+        - secretKey: group1_redis_user
+          remoteRef:
+            key: group1-redis-staging
+            property: group1_redis_user
+        - secretKey: group1_redis_password
+          remoteRef:
+            key: group1-redis-staging
+            property: group1_redis_password

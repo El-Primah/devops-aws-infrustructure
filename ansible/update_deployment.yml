@@ -1,0 +1,76 @@
+- hosts: "k8s"
+  gather_facts: no
+  become: true
+  tasks:
+    - name: Check if kube config is present
+      stat:
+        path: /home/jenkins/.kube/config
+      register: config_present
+    - name: Create .kube directory
+      ansible.builtin.file:
+        path: /home/jenkins/.kube
+        state: directory
+        owner: jenkins
+        group: users
+        mode: '0744'
+        recurse: yes
+      when: not config_present.stat.exists
+    - name: Copy config file
+      ansible.builtin.copy:
+        src: /home/ubuntu/.kube/config
+        dest: /home/jenkins/.kube/config
+        remote_src : true
+        owner: jenkins
+        group: users
+        mode: '0700'
+      when: not config_present.stat.exists
+- hosts: "k8s"
+  pre_tasks :
+  - include_vars: inventory/group_vars/k8s/helm.yml
+  - name: Compress chart values
+    shell: "cd ../helm-values; tar -cvf automation-dev_helm_values.tar automation-dev"
+    delegate_to: localhost
+  - name: Compress chart files
+    shell: "cd ..; tar -cvf helm_charts.tar comp-helm-charts/{{ Environment }}"
+    delegate_to: localhost
+  - name: Copy chart values
+    ansible.builtin.copy:
+      src: ../helm-values/automation-dev_helm_values.tar
+      dest: "{{ helm_values_dir }}"
+  - name: Copy f_item chart files
+    ansible.builtin.copy:
+      src: ../helm_charts.tar
+      dest: workspace
+  - name: UnCompress chart values
+    shell: "cd {{ helm_values_dir }}; tar -xvf automation-dev_helm_values.tar"
+  - name: UnCompress chart files
+    shell: "cd workspace; tar -xvf helm_charts.tar"
+  tasks:
+  - include_vars: inventory/group_vars/k8s/helm.yml
+  - name: "debug"
+    debug:
+      msg: >-
+        {{
+            dict(
+              deployments_input | regex_findall('([^,]+): ([^,]+)') | map('list')
+            )
+          }}
+  - name: "new deployments to yaml"
+    set_fact:
+      deployments_output: "{{ dict(
+              deployments_input | regex_findall('([^,]+): ([^,]+)') | map('list')
+            ) }}"
+  - name: "Deploy f_item chart"
+    kubernetes.core.helm:
+      name: "{{ item.key }}"
+      chart_ref: "{{ helm_charts_dir }}/{{ item.key }}"
+      release_namespace: "{{ namespace }}"
+      create_namespace: yes
+      values: 
+        image:
+          tag: "{{ item.value }}"
+      values_files:
+        - "{{ helm_values_dir }}/automation-dev/{{ item.key}}-values.yml"
+      force: true
+    loop: "{{ deployments_output | dict2items }}"
+    

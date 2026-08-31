@@ -1,0 +1,28 @@
+pipeline {
+    agent { label 'master' }
+    options {
+        timestamps ()
+        timeout(time: 30, unit: 'MINUTES')
+    }
+    triggers {
+        cron('0 */1 * * *')
+    }
+    stages {
+		stage('Deleting the data') {
+            steps {
+                sshagent(['prod-eu-west-1-bastion']) {
+                    sh '''#!/bin/bash
+                        ssh -o StrictHostKeyChecking=no ubuntu@bastion.y_app.comp.com << 'EOF'
+                        set -e
+
+                        POD_NAME=$(kubectl get pods | grep -i "group1-redis-0" | head -n 1 | awk '{print $1}')
+                        echo "Found pod: $POD_NAME"
+
+                        kubectl exec -i $POD_NAME -- /bin/bash -c "/usr/local/bin/expire.sh"
+                        EOF
+                        '''
+                    }
+            }
+        }
+    }
+}

@@ -1,0 +1,99 @@
+
+deployment:
+  enabled: true
+
+replicaCount: 1
+
+image:
+  repository: 343434343434.dkr.ecr.eu-west-1.amazonaws.com/comp/engine
+  pullPolicy: IfNotPresent
+  tag: latest
+
+imagePullSecrets:
+  - name: regsecret
+
+nameOverride: ""
+fullnameOverride: "engine"
+
+serviceAccount:
+  create: false
+  annotations: {}
+  name: "default"
+
+podAnnotations: {}
+
+podSecurityContext: {}
+
+securityContext: {}
+
+ports:
+  - name: http
+    containerPort: 80
+    protocol: TCP
+
+service:
+  type: ClusterIP
+  annotations: {}
+  port: 80
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: 80
+
+ingress:
+  enabled: false
+
+resources:
+  requests:
+    cpu: 110m
+    memory: 174Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+env:
+  - name: ENVIRONMENT
+    valueFrom:
+      configMapKeyRef:
+        key: environment
+        name: env-config
+
+probes:
+  liveness:
+    exec:
+      command:
+        - healthcheck
+    failureThreshold: 3
+    initialDelaySeconds: 3
+    periodSeconds: 5
+    successThreshold: 1
+    timeoutSeconds: 3
+  readiness:
+    exec:
+      command:
+        - healthcheck
+    failureThreshold: 3
+    initialDelaySeconds: 60
+    periodSeconds: 3
+    successThreshold: 1
+    timeoutSeconds: 3
+
+volumeMounts:
+  - name: logs
+    mountPath: /var/log
+
+volumes:
+  - name: logs
+    hostPath:
+      path: /LOGS/engine
+      type: ""

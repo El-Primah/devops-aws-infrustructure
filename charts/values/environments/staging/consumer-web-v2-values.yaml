@@ -1,0 +1,11 @@
+ingress:
+  enabled: true
+  hosts:
+  - paths:
+    - path: /
+      pathType: ImplementationSpecific
+    subdomain: app
+image:
+  repository: 343434343434.dkr.ecr.eu-west-1.amazonaws.com/comp/consumer-web
+  pullPolicy: Always
+  tag: staging

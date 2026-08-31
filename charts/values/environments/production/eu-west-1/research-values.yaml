@@ -1,0 +1,16 @@
+ingress:
+  enabled: true
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - paths:
+        - path: /
+          pathType: ImplementationSpecific
+      subdomain: research
+
+image:
+  repository: 343434343434.dkr.ecr.eu-west-1.amazonaws.com/comp/research
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: production

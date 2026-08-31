@@ -1,0 +1,34 @@
+pipeline {
+    agent { label 'master' }
+    options {
+        timestamps()
+        timeout(time: 30, unit: 'MINUTES')
+    }
+    triggers {
+        cron('0 2 * * *')
+    }
+    stages {
+        stage('Deleting the data') {
+            steps {
+                sshagent(['prod-us-east-1-bastion']) {
+                    withCredentials([usernamePassword(
+                        credentialsId: 'us-mongo-admin-credentials',
+                        usernameVariable: 'MONGO_USER',
+                        passwordVariable: 'MONGO_PASSWORD'
+                    )]) {
+                        sh """
+                            ssh -o StrictHostKeyChecking=no ubuntu@bastion.us.f_item.com \\
+                                "set -e; \\
+                                 POD_NAME=\\\$(sudo kubectl get pods | grep -i aliner | head -n 1 | awk '{print \\\$1}'); \\
+                                 sudo kubectl exec -i \\\$POD_NAME -- /bin/bash -c \\\"
+                                     export mongo_user=$MONGO_USER mongo_password=$MONGO_PASSWORD; \\\\
+                                     php artisan cleanup-mongo
+                                 \\\"
+                                "
+                        """
+                    }
+                }
+            }
+        }
+    }
+}

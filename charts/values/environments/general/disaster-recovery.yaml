@@ -1,0 +1,10 @@
+
+# production domains
+global:
+  domains:
+    external: comp.com
+    internal: f_item.com
+
+envName: disaster-recovery
+avalabilityZone: eu-west-1
+

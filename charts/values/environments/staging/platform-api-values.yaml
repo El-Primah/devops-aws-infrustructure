@@ -1,0 +1,11 @@
+ingress:
+  enabled: true
+  hosts:
+  - paths:
+    - path: /
+      pathType: ImplementationSpecific
+    subdomain: api
+image:
+  repository: 343434343434.dkr.ecr.eu-west-1.amazonaws.com/comp/platform-api-v1
+  pullPolicy: Always
+  tag: staging

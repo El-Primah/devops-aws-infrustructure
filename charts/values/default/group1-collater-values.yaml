@@ -1,0 +1,116 @@
+
+deployment:
+  enabled: true
+
+replicaCount: 1
+
+image:
+  repository: 343434343434.dkr.ecr.eu-west-1.amazonaws.com/comp/group1
+  pullPolicy: IfNotPresent
+  tag: latest
+
+imagePullSecrets:
+  - name: regsecret
+
+nameOverride: ""
+fullnameOverride: "group1-collater"
+
+serviceAccount:
+  create: false
+  annotations: {}
+  name: "default"
+
+podAnnotations: {}
+
+podSecurityContext: {}
+
+securityContext: {}
+
+ports:
+  - name: http
+    containerPort: 98
+    protocol: TCP
+
+service:
+  type: ClusterIP
+  annotations: {}
+  port: 98
+  ports:
+    - name: http
+      port: 98
+      protocol: TCP
+      targetPort: 98
+
+ingress:
+  enabled: false
+
+resources:
+  requests:
+    cpu: 210m
+    memory: 1446Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - podAffinityTerm:
+        labelSelector:
+          matchExpressions:
+          - key: app.kubernetes.io/name
+            operator: In
+            values:
+            - group1-collater
+        topologyKey: kubernetes.io/hostname
+      weight: 100
+
+command:
+  - /entrypoint.bash
+
+args:
+  - collater
+
+env:
+  - name: ENVIRONMENT
+    valueFrom:
+      configMapKeyRef:
+        key: environment
+        name: env-config
+
+probes:
+  liveness:
+    exec:
+      command:
+        - liveness-check
+    failureThreshold: 3
+    initialDelaySeconds: 3
+    periodSeconds: 5
+    successThreshold: 1
+    timeoutSeconds: 3
+  readiness:
+    exec:
+      command:
+        - readiness-check
+    failureThreshold: 3
+    initialDelaySeconds: 30
+    periodSeconds: 3
+    successThreshold: 1
+    timeoutSeconds: 3
+
+volumeMounts:
+  - name: logs
+    mountPath: /var/log
+
+volumes:
+  - name: logs
+    hostPath:
+      path: /LOGS/group1-collater
+      type: ""

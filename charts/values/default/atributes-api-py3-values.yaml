@@ -1,0 +1,93 @@
+deployment:
+  enabled: true
+
+replicaCount: 1
+
+image:
+  repository: 343434343434.dkr.ecr.eu-west-1.amazonaws.com/comp/group1
+  pullPolicy: Always
+  tag: latest
+
+nameOverride: ""
+fullnameOverride: "atributes-api-py3"
+
+serviceAccount:
+  create: false
+  annotations: {}
+  name: "default"
+
+podSecurityContext: {}
+
+securityContext: {}
+
+ports:
+  - name: http
+    containerPort: 8080
+    protocol: TCP
+
+service:
+  enabled: true
+  name: "atributes-api-py3-external"
+  type: LoadBalancer
+  annotations: {}
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: 8080
+
+ingress:
+  enabled: false
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 8G
+
+autoscaling:
+  enabled: false
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxSurge: "25%"
+    maxUnavailable: "90%"
+
+command: []
+args: []
+env:
+  - name: WORKER_NAME
+    value: "attr-api"
+  - name: ENV
+    value: "prod"
+  - name: LEVEL
+    value: "DEBUG"
+  - name: ITEM_VALIDATION_ENDP
+    value: "http://item-app"
+  - name: g_app_ENDP
+    value: "http://group1-g_app-api"
+  - name: ENVIRONMENT
+    valueFrom:
+      configMapKeyRef:
+        key: environment
+        name: env-config
+
+probes:
+  liveness: {}
+  readiness: {}
+
+volumeMounts:
+  - name: logs
+    mountPath: /var/logs/supervisor/
+
+volumes:
+  - name: logs
+    hostPath:
+      path: /LOGS/atributes-api-py3
+      type: ""

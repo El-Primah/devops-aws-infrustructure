@@ -1,0 +1,41 @@
+pipeline {
+    agent { label 'devops' }
+    options {
+        timestamps ()
+        timeout(time: 120, unit: 'MINUTES')
+    }
+    stages {
+        stage('Deploy via SSH') {
+            steps {
+               dir('ansible') { 
+                script {
+                    withCredentials([sshUserPrivateKey(credentialsId: 'dr-bastion-access', keyFileVariable: 'SSH_KEY', usernameVariable: 'SSH_USER')]) {
+                        sh '''#!/bin/bash 
+                            chmod 600 $SSH_KEY
+                            
+                            if [ -n "${MYSQL_SERVICE_POINT}" ]; then
+                                echo "Change mysql service.externalName to: ${MYSQL_SERVICE_POINT}"
+                                sed -i "s|externalName: .*|externalName: ${MYSQL_SERVICE_POINT}|" ../charts/values/environments/"${EnvName}"/prerequisites-values.yaml
+                            fi
+                            
+                            
+                            sed -i "s|changeme|${DrBastionIP}|g" inventory.yaml
+                            sed -i "s|change-ssh-file-path|${SSH_KEY}|g" inventory.yaml
+                            
+                            echo "cat inventory.yaml"
+                            cat inventory.yaml
+                            
+                            echo "ls"
+                            ls
+                            echo "ls ../"
+                            ls ../
+                            
+                            ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook install_f_item.yml -i inventory.yaml -e "allCharts=${InstallALLCharts} ServiceName=${ServiceName} ImageTag=${ImageTag} Environment=${EnvName} RequestsEnv=${RequestsEnv} Namespace=${Namespace} EnvironmentValues=${EnvValues}"
+                        '''
+                      }
+                    }
+                }
+            }
+        }
+    }
+}

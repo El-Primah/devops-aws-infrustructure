@@ -1,0 +1,46 @@
+{{- if .Values.ingress.enabled -}}
+{{- $fullName := include "application.fullname" . -}}
+{{- $svcPort := .Values.ingress.servicePort -}}
+{{- $useGlobalDomain := .Values.ingress.useGlobalDomain -}}
+{{- $globalDomains := .Values.global.domains -}}
+{{- if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
+apiVersion: networking.k8s.io/v1
+{{- else -}}
+apiVersion: extensions/v1
+{{- end }}
+kind: Ingress
+metadata:
+  name: {{ $fullName }}
+  labels:
+    {{- include "application.labels" . | nindent 4 }}
+  {{- with .Values.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  ingressClassName: nginx
+  rules:
+    {{- range .Values.ingress.hosts }}
+    {{- $domain := .domain }}
+    {{- if $useGlobalDomain }}
+      {{- if eq $useGlobalDomain "internal" }}
+        {{- $domain = $globalDomains.internal }}
+      {{- else if eq $useGlobalDomain "external" }}
+        {{- $domain = $globalDomains.external }}
+      {{- end }}
+    {{- end }}
+    - host: "{{ .subdomain }}.{{ $domain }}"
+      http:
+        paths:
+          {{- range .paths }}
+          - path: {{ .path }}
+            pathType: {{ .pathType }}
+            backend:
+              service:
+                name: {{ $fullName }}
+                port:
+                  number: {{ $svcPort }}
+          {{- end }}
+    {{- end }}
+  {{- end }}
+

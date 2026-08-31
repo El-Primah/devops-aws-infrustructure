@@ -1,0 +1,11 @@
+awsRegion: us-east-1
+cloudProvider: aws
+autoDiscovery:
+  clusterName: ${eks_cluster_name}
+rbac:
+  serviceAccount:
+    annotations:
+      eks.amazonaws.com/role-arn: ${oidc_iam_role_arm}
+extraArgs:
+  cores-total: "4:12"
+  memory-total: "12:36"

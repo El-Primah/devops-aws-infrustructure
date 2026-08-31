@@ -1,0 +1,13 @@
+replicaCount: 1
+service:
+  type: LoadBalancer
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+    protocol: TCP
+    nodePort: 30742
+image:
+  repository: 343434343434.dkr.ecr.eu-west-1.amazonaws.com/comp/group1
+  tag: staging
+  pullPolicy: Always

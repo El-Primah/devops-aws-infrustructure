@@ -1,0 +1,100 @@
+deployment:
+  enabled: true
+
+replicaCount: 1
+
+image:
+  repository: 343434343434.dkr.ecr.eu-west-1.amazonaws.com/comp/gandalf
+  pullPolicy: Always
+  tag: latest
+
+nameOverride: ""
+fullnameOverride: "gandalf-caller"
+
+serviceAccount:
+  create: false
+  annotations: {}
+  name: "default"
+
+podSecurityContext: {}
+
+securityContext: {}
+
+ports:
+  - name: http
+    containerPort: 80
+    protocol: TCP
+
+service:
+  enabled: true
+  name: "gandalf-caller"
+  type: LoadBalancer
+  annotations: {}
+  ports:
+    - name: http
+      port: 8080
+      protocol: TCP
+      targetPort: 80
+
+ingress:
+  enabled: false
+
+resources: {}
+  # requests:
+  #   cpu: 200m
+  #   memory: 1G
+  # limits:
+  #   cpu: 1
+  #   memory: 1Gi
+
+autoscaling:
+  enabled: false
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxSurge: "25%"
+    maxUnavailable: "25%"
+
+command: []
+args: []
+env:
+  - name: IS_PUBLIC_API
+    value: "0"
+  - name: VPC_PRIVATE_ENDPOINT
+    value: "https://vpce-02a3678a3176892fc-9xzt79lg.execute-api.eu-west-1.vpce.amazonaws.com/prod"
+  - name: ITEMVALIDATION_GW_TOKEN
+    value: "embxm00z86"
+  - name: SYNDNETS_GW_TOKEN
+    value: "of7zk5y8vf"
+  - name: DSCORE_GW_TOKEN
+    value: "j8mjrqdi4a"
+  - name: APPVALID_PREVALENT_GW_TOKEN
+    value: "efmp137v2a"
+  - name: REDEPLOY_TIMESTAMP
+    value: "2025-10-24-15-50"
+  - name: ENVIRONMENT
+    valueFrom:
+      configMapKeyRef:
+        key: environment
+        name: env-config
+
+probes:
+  liveness: {}
+  readiness: {}
+
+volumeMounts:
+  - name: gandalf-secrets
+    mountPath: /run/secrets
+    readOnly: true
+
+volumes:
+  - name: gandalf-secrets
+    secret:
+      secretName: gandalf-secrets
